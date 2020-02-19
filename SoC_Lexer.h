@@ -16,6 +16,7 @@ typedef struct {
     uint8_t in_layer ;
     uint8_t out_layer ;
     uint64_t test_time ;
+    uint16_t wrapper_chain ;        // denotes the the wrapper chain that includes it
 } scanchain_t ;
 
 class SoC_Lexer {

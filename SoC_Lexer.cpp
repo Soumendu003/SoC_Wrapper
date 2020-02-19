@@ -10,6 +10,7 @@ vector<scanchain_t>* SoC_Lexer::Get_SoC_scanchains()
         tem_sc.test_time = _sc_tt ;
         tem_sc.out_layer = 0 ;
         tem_sc.in_layer = 0 ;
+        //tem_sc.wrapper_chain = 0 ;
         scanchains->push_back(tem_sc) ;
     }
     return scanchains ;
@@ -51,7 +52,7 @@ vector<scanchain_t>* SoC_Lexer::Get_RandLayer_scanchains(uint8_t max_layer)
     {
         scanchains->at(i).in_layer = rand() % max_layer ;
         scanchains->at(i).out_layer = rand() % max_layer ;
-        cout<<"Sc_tt = "<<scanchains->at(i).test_time<<"\tin_layer = "<<to_string(scanchains->at(i).in_layer)<<"\tout_layer = "<<to_string(scanchains->at(i).out_layer)<<endl ;
+        cout<<"Sc_tt = "<<scanchains->at(i).test_time<<"\tin_layer = "<<to_string(scanchains->at(i).in_layer)<<"\tout_layer = "<<to_string(scanchains->at(i).out_layer)<<"\twrapper chain = "<<to_string(scanchains->at(i).wrapper_chain)<<endl ;
     }
 
     return scanchains ;
