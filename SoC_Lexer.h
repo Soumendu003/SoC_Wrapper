@@ -6,6 +6,8 @@
 #include"Header.h"
 #include"ut_Tokenizer.h"
 #include<vector>
+#include<stdlib.h>
+#include<time.h>
 
 using namespace std ;
 
@@ -38,6 +40,7 @@ class SoC_Lexer {
         }
 
         vector<scanchain_t>* Get_SoC_scanchains() ;
+        vector<scanchain_t>* Get_RandLayer_scanchains(uint8_t max_layer = 2) ;
 
     private:
         uint8_t Get_scanchain() ;

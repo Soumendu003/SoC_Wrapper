@@ -8,10 +8,10 @@ vector<scanchain_t>* SoC_Lexer::Get_SoC_scanchains()
     while (Get_scanchain())
     {
         tem_sc.test_time = _sc_tt ;
-        cout << _sc_tt << "\t" ;
+        tem_sc.out_layer = 0 ;
+        tem_sc.in_layer = 0 ;
         scanchains->push_back(tem_sc) ;
     }
-
     return scanchains ;
 }
 
@@ -23,7 +23,8 @@ uint8_t SoC_Lexer::Get_scanchain()
         _sc_tt = (uint64_t)atoi(lexeme) ;
         return 1;
     }
-    while (lexeme) {
+    while (lexeme) 
+    {
        if (Strcmpi(lexeme, "Scanchains") == 0) {
             _avail_sc = (uint64_t)atoi(_tok->get_token()) ;      // gets no of scanchains available
             
@@ -33,8 +34,25 @@ uint8_t SoC_Lexer::Get_scanchain()
             return Get_scanchain() ;
        }
        lexeme = _tok->get_token() ;
-       //cout<<"lexeme got = "<<lexeme<<endl ; 
     }
     
     return 0 ;
+}
+
+
+vector<scanchain_t>* SoC_Lexer::Get_RandLayer_scanchains(uint8_t max_layer)
+{
+    vector<scanchain_t> *scanchains = Get_SoC_scanchains() ;
+
+    // Initializes the random seed
+    //srand(time(NULL)) ;
+
+    for (uint64_t i = 0; i < scanchains->size(); i++)
+    {
+        scanchains->at(i).in_layer = rand() % max_layer ;
+        scanchains->at(i).out_layer = rand() % max_layer ;
+        cout<<"Sc_tt = "<<scanchains->at(i).test_time<<"\tin_layer = "<<to_string(scanchains->at(i).in_layer)<<"\tout_layer = "<<to_string(scanchains->at(i).out_layer)<<endl ;
+    }
+
+    return scanchains ;
 }
