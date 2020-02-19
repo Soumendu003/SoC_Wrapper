@@ -11,7 +11,6 @@
 
 using namespace std ;
 
-
 typedef struct {
     uint8_t in_layer ;
     uint8_t out_layer ;
@@ -19,13 +18,9 @@ typedef struct {
     uint16_t wrapper_chain ;        // denotes the the wrapper chain that includes it
 } scanchain_t ;
 
-class SoC_Lexer {
-    private:
-        ut_Tokenizer* _tok = 0;
-        string  _delimeters = "\n\t\r";
-        string _special_Char_Set = ":";
-        uint64_t _sc_tt = (uint64_t)0 ;        // holds the tets time of the parsed scanchain
-        uint64_t _avail_sc = (uint64_t)0 ;     // no of available scan chains in the buffer
+class SoC_Lexer 
+{
+    
     public:
         SoC_Lexer() {} ;
 
@@ -47,7 +42,12 @@ class SoC_Lexer {
         uint8_t Get_scanchain() ;
 
         
-
+    private:
+        ut_Tokenizer* _tok = 0;
+        string  _delimeters = "\n\t\r";
+        string _special_Char_Set = ":";
+        uint64_t _sc_tt = (uint64_t)0 ;        // holds the tets time of the parsed scanchain
+        uint64_t _avail_sc = (uint64_t)0 ;     // no of available scan chains in the buffer
 
 };
 
