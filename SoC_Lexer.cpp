@@ -5,8 +5,7 @@ vector<scanchain_t>* SoC_Lexer::Get_SoC_scanchains()
 {
     vector<scanchain_t> *scanchains =  new vector<scanchain_t> ;
     scanchain_t tem_sc ;
-
-    while (Get_scanchains())
+    while (Get_scanchain())
     {
         tem_sc.test_time = _sc_tt ;
         cout << _sc_tt << "\t" ;
@@ -19,22 +18,22 @@ vector<scanchain_t>* SoC_Lexer::Get_SoC_scanchains()
 uint8_t SoC_Lexer::Get_scanchain()
 {
     char *lexeme = _tok->get_token() ;
-
     if (_avail_sc > 0) {
         _avail_sc -= 1 ;
-        return (uint64_t)atoi(lexeme) ;
+        _sc_tt = (uint64_t)atoi(lexeme) ;
+        return 1;
     }
     while (lexeme) {
        if (Strcmpi(lexeme, "Scanchains") == 0) {
-           cout << endl ;
-            uint64_t _avail_sc = (uint64_t)atoi(_tok->get_token()) ;      // gets no of scanchains available
-
+            _avail_sc = (uint64_t)atoi(_tok->get_token()) ;      // gets no of scanchains available
+            
             // gets  the symbol ':'
             _tok->get_token() ;
 
             return Get_scanchain() ;
        }
-       lexeme = _tok->get_token() ; 
+       lexeme = _tok->get_token() ;
+       //cout<<"lexeme got = "<<lexeme<<endl ; 
     }
     
     return 0 ;
