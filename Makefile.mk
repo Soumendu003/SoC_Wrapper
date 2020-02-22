@@ -21,6 +21,11 @@ EXT_OBJECTS := $(patsubst %,$(PARENT_DIR)/%/*o,$(LINKDIR))
 
 default : target
 
+library:
+	for p in $(SUB_DIR) ; do\
+		$(MAKE) -C $$p -f Makefile.mk ; \
+	done
+
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c -I. $(patsubst %,-I$(PARENT_DIR)/%,$(LINKDIR)) $<
 
@@ -30,10 +35,9 @@ target: $(OBJECTS) library
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS) $(EXT_OBJECTS) 
 
 clean:
-	rm -f $(TARGET) $(OBJECTS)
+	rm -rf $(TARGET) $(OBJECTS)
 
-
-library:
+clean-all: clean
 	for p in $(SUB_DIR) ; do\
-		$(MAKE) -C $$p -f Makefile.mk ; \
+		$(MAKE) -C $$p -f Makefile.mk clean ; \
 	done
