@@ -8,10 +8,10 @@ void Wrapper_Optimizer::Minimize_TSV_Phase()
 
 void Wrapper_Optimizer::Two_Phase_Optimizer()
 {
-    Initialize_WrapperChains() ;    //Initializes the Wrapper Chain
+    //Initialize_WrapperChains() ;    //Initializes the Wrapper Chain
 
-    Count_TSV() ;   // Counts the current TSV
-    Count_TT() ;    // Counts current Test Time
+    //Count_TSV() ;   // Counts the current TSV
+    //Count_TT() ;    // Counts current Test Time
 
     Simulated_Annelation() ;
 

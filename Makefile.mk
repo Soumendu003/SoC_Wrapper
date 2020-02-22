@@ -1,27 +1,39 @@
+SRC = $(shell pwd)
+PARENT_DIR := $(SRC)/..
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -g -lpthread
 
-CURR_DIR = /home/Guddu/SoC_Wrapper
-UTIL_DIR = /home/Guddu/Util
+LINKDIR = Util
+
 OBJECTS = $(addsuffix .o, $(basename $(wildcard *.cpp)))
-INCLUDE_DIR = ./build
 
-install: copy
+ifeq ($(shell uname),Linux)
+	OS = linux
+endif
+ifeq ($(shell uname | head -c 6),CYGWIN)
+	OS = Cygwin
+endif
 
-%.o : %.cpp
-	$(CXX) $(CXXFLAGS) -c $^
+TARGET := SoC-$(OS)
 
-copy: $(UTIL_DIR)
-	rm -rf $(INCLUDE_DIR)
-	mkdir $(INCLUDE_DIR)
-	cp $(UTIL_DIR)/* $(INCLUDE_DIR)
-	cp -f ./*.* $(INCLUDE_DIR)
-	$(MAKE) -C $(INCLUDE_DIR) -f Makefile.mk build
+SUB_DIR = $(patsubst %,$(PARENT_DIR)/%,$(LINKDIR))
+EXT_OBJECTS := $(patsubst %,$(PARENT_DIR)/%/*o,$(LINKDIR))
 
-build: $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(OBJECTS) -o exe
-	cp exe.exe ./..
-	$(MAKE) -C $(CURR_DIR) -f Makefile.mk clean
+default : target
+
+.cpp.o:
+	$(CXX) $(CXXFLAGS) -c -I. $(patsubst %,-I$(PARENT_DIR)/%,$(LINKDIR)) $<
+
+$(OBJECTS) : $(HEADERS) $(patsubst %,$(PARENT_DIR)/%/*.h,$(LINKDIR)) 
+
+target: $(OBJECTS) library
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS) $(EXT_OBJECTS) 
 
 clean:
-	rm -rf $(INCLUDE_DIR)
+	rm -f $(TARGET) $(OBJECTS)
+
+
+library:
+	for p in $(SUB_DIR) ; do\
+		$(MAKE) -C $$p -f Makefile.mk ; \
+	done
