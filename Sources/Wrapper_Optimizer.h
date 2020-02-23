@@ -24,7 +24,7 @@ class Wrapper_Optimizer
         void Count_TT() {}
         int Get_Delta_TSV(uint64_t sc_id, uint64_t wc_id) { return 0 ;}
         double Get_TT_Penalty(uint64_t sc_id, uint64_t wc_id) { return 0 ;}
-        void Move_SC(uint64_t sc_id, uint64_t wc_id, uint64_t new_tsv_count) {}
+        void Move_SC(uint64_t sc_id, uint64_t wc_id, uint64_t new_tsv_count) ;
 
     private:
         vector<scanchain_t> *_sc_array ;

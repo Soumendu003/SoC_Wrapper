@@ -87,3 +87,9 @@ void Wrapper_Optimizer::Minimize_TSV_Phase()
     }
 
 }
+
+void Wrapper_Optimizer::Move_SC(uint64_t sc_id, uint64_t wc_id, uint64_t new_tsv_count)
+{
+    _sc_array->at(sc_id).wrapper_chain = wc_id ;
+    _tsv_count = new_tsv_count ;
+}
