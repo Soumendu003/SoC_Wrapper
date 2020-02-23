@@ -1,11 +1,20 @@
 SRC = $(shell pwd)
-PARENT_DIR := $(SRC)/..
+#PARENT_DIR := $(SRC)/..
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -g -lpthread
+LINKDIR = Library Sources
 
-LINKDIR = Util
+#LIB_TYPE = {static,shared}
+LIB_TYPE = $(LIB)
+
+ifeq ($(LIB_TYPE),shared)
+   LIB_EXT = so
+else
+   LIB_EXT = a
+endif
 
 OBJECTS = $(addsuffix .o, $(basename $(wildcard *.cpp)))
+HEADERS = $(wildcard *.h)
 
 ifeq ($(shell uname),Linux)
 	OS = linux
@@ -16,22 +25,23 @@ endif
 
 TARGET := SoC-$(OS)
 
-SUB_DIR = $(patsubst %,$(PARENT_DIR)/%,$(LINKDIR))
-EXT_OBJECTS := $(patsubst %,$(PARENT_DIR)/%/*o,$(LINKDIR))
+SUB_DIR = $(patsubst %,$(SRC)/%,$(LINKDIR))
+EXT_OBJECTS = $(patsubst %,$(SRC)/%/*-$(OS).$(LIB_EXT),$(LINKDIR))
 
 default : target
 
-library:
+
+.cpp.o:
+	$(CXX) $(CXXFLAGS) -c -I. $(patsubst %,-I$(SRC)/%,$(LINKDIR)) $<
+
+$(OBJECTS) : $(HEADERS) $(patsubst %,$(SRC)/%/*.h,$(LINKDIR)) 
+
+target: $(OBJECTS)
+	#builds the objects in sub-directories
 	for p in $(SUB_DIR) ; do\
 		$(MAKE) -C $$p -f Makefile.mk ; \
 	done
-
-.cpp.o:
-	$(CXX) $(CXXFLAGS) -c -I. $(patsubst %,-I$(PARENT_DIR)/%,$(LINKDIR)) $<
-
-$(OBJECTS) : $(HEADERS) $(patsubst %,$(PARENT_DIR)/%/*.h,$(LINKDIR)) 
-
-target: $(OBJECTS) library
+	#creates executable
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS) $(EXT_OBJECTS) 
 
 clean:
