@@ -1,5 +1,5 @@
 SRC = $(shell pwd)
-#PARENT_DIR := $(SRC)/..
+#_parentDIR := $(SRC)/..
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -g -lpthread
 LINKDIR = Library Sources

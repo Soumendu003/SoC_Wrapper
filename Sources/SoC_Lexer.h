@@ -12,6 +12,7 @@
 using namespace std ;
 
 typedef struct {
+    uint64_t sc_id ;
     uint8_t in_layer ;
     uint8_t out_layer ;
     uint64_t test_time ;

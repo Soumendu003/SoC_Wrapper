@@ -1,5 +1,5 @@
 SRC = $(shell pwd)
-PARENT_DIR := $(SRC)/..
+_parentDIR := $(SRC)/..
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -g -lpthread
 
@@ -23,15 +23,15 @@ LINKDIR = Library
 OBJECTS = $(addsuffix .o, $(basename $(wildcard *.cpp)))
 HEADERS = $(wildcard *.h)
 
-SUB_DIR = $(patsubst %,$(PARENT_DIR)/%,$(LINKDIR))
-EXT_OBJECTS := $(patsubst %,$(PARENT_DIR)/%/*o,$(LINKDIR))
+SUB_DIR = $(patsubst %,$(_parentDIR)/%,$(LINKDIR))
+EXT_OBJECTS := $(patsubst %,$(_parentDIR)/%/*o,$(LINKDIR))
 
 default : target
 
 .cpp.o:
-	$(CXX) $(CXXFLAGS) -c -I. $(patsubst %,-I$(PARENT_DIR)/%,$(LINKDIR)) $<
+	$(CXX) $(CXXFLAGS) -c -I. $(patsubst %,-I$(_parentDIR)/%,$(LINKDIR)) $<
 
-$(OBJECTS) : $(HEADERS) $(patsubst %,$(PARENT_DIR)/%/*.h,$(LINKDIR)) 
+$(OBJECTS) : $(HEADERS) $(patsubst %,$(_parentDIR)/%/*.h,$(LINKDIR)) 
 
 target: $(OBJECTS)
 	ld -r -o $(TARGET) *.o

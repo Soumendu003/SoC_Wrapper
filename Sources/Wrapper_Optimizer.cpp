@@ -23,13 +23,49 @@ void Wrapper_Optimizer::Two_Phase_Optimizer(uint8_t max_layer, uint8_t wrapper_c
     _wc_count = wrapper_chain_count ;
     _max_layer = max_layer ;
 
+    delete _wc_array ;
+
+    _wc_array = new vector<Wrapper_Chain*> ;
+
+    for (uint8_t i = 0; i < _wc_count; i++)
+    {
+        _wc_array->push_back(new Wrapper_Chain(i)) ;
+    }
+    
+
     Initialize_WrapperChains() ;    //Initializes the Wrapper Chain
 
     Count_TSV() ;   // Counts the current TSV
     Count_TT() ;    // Counts current Test Time
 
-    Simulated_Annelation() ;
+    //Simulated_Annelation() ;
 
+}
+
+void Wrapper_Optimizer::Initialize_WrapperChains()
+{
+    // Descending Sorting required for assignment
+    std::sort(_sc_array->begin(), _sc_array->end(), Wrapper_Optimizer::SC_tt_compare) ;
+
+    // Used to assign the max tt sc, to less tt wc
+    std::make_heap(_wc_array->begin(), _wc_array->end(), Wrapper_Optimizer::WC_tt_min_compare) ;
+
+    for (uint64_t i = 0; i < _sc_array->size(); i++) 
+    {
+        std::pop_heap(_wc_array->begin(), _wc_array->end(), Wrapper_Optimizer::WC_tt_min_compare) ;
+        Wrapper_Chain *tem = _wc_array->at(_wc_array->size() - 1) ;
+
+        _sc_array->at(i).wrapper_chain = tem->Get_id() ;
+        tem->Insert_SC(_sc_array->at(i)) ;
+
+        std::push_heap(_wc_array->begin(), _wc_array->end(), Wrapper_Optimizer::WC_tt_min_compare) ;
+    }
+
+    for (uint64_t i = 0 ; i < _wc_array->size(); i++)
+    {
+        std::cout<<"Wc_id = "<<std::to_string(_wc_array->at(i)->Get_id())<<"\t tt = "<<std::to_string(_wc_array->at(i)->Get_tt())<<std::endl ;
+    }
+    std::cout<<"Initialization done"<<std::endl ;
 }
 
 void Wrapper_Optimizer::Simulated_Annelation()
