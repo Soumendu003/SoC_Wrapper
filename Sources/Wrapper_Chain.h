@@ -29,6 +29,7 @@ class Wrapper_Chain
         uint64_t Get_tt() { return _test_time ; }
         uint64_t Get_id() { return _wc_id ; }
         uint64_t Get_Closest_TT_id(uint64_t tt_key) ;
+        void PrintScanchains() ;
     private:
 
 

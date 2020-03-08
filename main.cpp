@@ -3,6 +3,8 @@
 #include<stdlib.h>
 #include<time.h>
 
+using namespace std ;
+
 int main()
 {
     //Initializes rand seed
@@ -12,6 +14,5 @@ int main()
     //sc_lex.Get_SoC_scanchains() ; 
     Wrapper_Optimizer wo = Wrapper_Optimizer(sc_lex.Get_RandLayer_scanchains(6)) ;
     wo.Two_Phase_Optimizer(6, 4) ;
-    //wo.Simulated_Annelation() ;
     return 0;
 }

@@ -24,22 +24,50 @@ void Wrapper_Optimizer::Two_Phase_Optimizer(uint8_t max_layer, uint8_t wrapper_c
     _max_layer = max_layer ;
 
     delete _wc_array ;
+    delete _tt_mover ;
 
     _wc_array = new vector<Wrapper_Chain*> ;
+    _tt_mover = new TT_Movement(_wc_count) ;
 
     for (uint8_t i = 0; i < _wc_count; i++)
     {
         _wc_array->push_back(new Wrapper_Chain(i)) ;
     }
-    
 
     Initialize_WrapperChains() ;    //Initializes the Wrapper Chain
+    Initialize_TT_Mover() ;    //Initializes _tt_move_array
 
     Count_TSV() ;   // Counts the current TSV
     Count_TT() ;    // Counts current Test Time
 
     //Simulated_Annelation() ;
 
+}
+
+void Wrapper_Optimizer::Initialize_TT_Mover()
+{
+    uint64_t sc_id ;
+    for (uint64_t i = 0; i < _wc_count; i++)
+    {
+        for (uint64_t j = 0; j < _wc_count; j++)
+        {
+            tt_move_t tem ;
+            tem.destination_wc = j ;
+            tem.source_wc = i ;
+
+            if (i == j) {
+                sc_id = _wc_array->at(i)->Get_Closest_TT_id(0) ; 
+            } else if (_wc_array->at(i)->Get_tt() <= _wc_array->at(j)->Get_tt()) {
+                sc_id = _wc_array->at(i)->Get_Closest_TT_id(0) ;
+            } else {
+                uint64_t tt_key = _wc_array->at(i)->Get_tt() - _wc_array->at(j)->Get_tt() ;
+                sc_id = _wc_array->at(i)->Get_Closest_TT_id(tt_key) ;
+            }
+            tem.delta_entropy = Get_Delta_TT_Entropy(i, j, sc_id) ;
+            tem.sc_id = sc_id ;
+            _tt_mover->Update_TT_Move(tem) ;
+        }
+    }
 }
 
 void Wrapper_Optimizer::Initialize_WrapperChains()
@@ -64,6 +92,8 @@ void Wrapper_Optimizer::Initialize_WrapperChains()
     for (uint64_t i = 0 ; i < _wc_array->size(); i++)
     {
         std::cout<<"Wc_id = "<<std::to_string(_wc_array->at(i)->Get_id())<<"\t tt = "<<std::to_string(_wc_array->at(i)->Get_tt())<<std::endl ;
+        std::cout<<std::endl ;
+        _wc_array->at(i)->PrintScanchains() ;
     }
     std::cout<<"Initialization done"<<std::endl ;
 }
@@ -86,6 +116,7 @@ void Wrapper_Optimizer::Simulated_Annelation()
         {
             Minimize_TT_Phase() ;
         }
+        _tt_mover->Reset_Lock() ;
 
         T = 0.9*T ;     // reduces the T value 10%
     }
@@ -128,4 +159,9 @@ void Wrapper_Optimizer::Move_SC(uint64_t sc_id, uint64_t wc_id, uint64_t new_tsv
 {
     _sc_array->at(sc_id).wrapper_chain = wc_id ;
     _tsv_count = new_tsv_count ;
+}
+
+void Wrapper_Optimizer::Minimize_TT_Phase() 
+{
+
 }

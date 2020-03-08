@@ -51,6 +51,7 @@ vector<scanchain_t>* SoC_Lexer::Get_RandLayer_scanchains(uint8_t max_layer)
     {
         scanchains->at(i).in_layer = rand() % max_layer ;
         scanchains->at(i).out_layer = rand() % max_layer ;
+        scanchains->at(i).sc_id = i ;
         //cout<<"Sc_tt = "<<scanchains->at(i).test_time<<"\tin_layer = "<<to_string(scanchains->at(i).in_layer)<<"\tout_layer = "<<to_string(scanchains->at(i).out_layer)<<"\twrapper chain = "<<to_string(scanchains->at(i).wrapper_chain)<<endl ;
     }
 
