@@ -6,6 +6,7 @@ void Wrapper_Chain::Insert_SC(const scanchain_t ele)
     // std::cout<<"Size of _id_to_sc = "<<std::to_string(_id_to_sc->size())<<std::endl;
     if (_id_to_sc->find(ele.sc_id) == _id_to_sc->end()) {
         _id_to_sc->insert({ele.sc_id, ele}) ;
+        _inLayer_to_id->insert({ele.in_layer, ele.sc_id}) ;
         _tt_to_id->insert({ele.test_time, ele.sc_id}) ;
         // std::cout<<"sc id = "<<std::to_string(ele.sc_id)<<" \t inserted at wc id = "<<std::to_string(_wc_id) <<std::endl ;
 
@@ -20,7 +21,7 @@ uint8_t Wrapper_Chain::Delete_SC(const uint64_t sc_id)
 {
     auto it = _id_to_sc->find(sc_id) ;
     if (it != _id_to_sc->end()) {
-        _test_time = it->second.test_time ;
+        _test_time -= it->second.test_time ;
 
         auto it_tt = _tt_to_id->equal_range(it->second.test_time) ;
         for (auto i = it_tt.first; i != it_tt.second; i++) 
@@ -30,7 +31,18 @@ uint8_t Wrapper_Chain::Delete_SC(const uint64_t sc_id)
                 break ;
             }
         }
+
+        auto it_inLayer = _inLayer_to_id->equal_range(it->second.in_layer) ;
+        for (auto i = it_inLayer.first; i != it_inLayer.second; i++)
+        {
+            if (i->second == sc_id) {
+                _inLayer_to_id->erase(i) ;
+                break ;
+            }
+        }
+
         _id_to_sc->erase(it) ;
+
         return 1 ;
     } else {
         std::cerr << "Scanchain element of id = " << std::to_string(sc_id) << "not in the Wrapper Chain with id = " << to_string(this->_wc_id) <<". Can't delete." <<std::endl ;
@@ -66,5 +78,84 @@ void Wrapper_Chain::PrintScanchains()
     for (auto it = _id_to_sc->begin(); it != _id_to_sc->end(); it++)
     {
         std::cout << "Scanchain id = "<<std::to_string(it->first)<<std::endl ;
+    }
+}
+
+uint64_t Wrapper_Chain::Get_Nearest_InLayer(multimap<uint8_t, uint64_t> &inLayer_map, uint8_t key)
+{
+    auto itlow = inLayer_map.lower_bound(key) ;
+
+    uint64_t ret_val ;
+
+    assert(itlow != inLayer_map.end()) ;
+
+    if (itlow == inLayer_map.begin()) {
+        ret_val = itlow->second ;
+        inLayer_map.erase(itlow) ;
+       
+    } else {
+        auto pre = std::prev(itlow) ;
+        if ((key - pre->first) < (itlow->first - key)) {
+            ret_val = pre->second ;
+            inLayer_map.erase(pre) ;
+        } else {
+            ret_val = itlow->second ;
+            inLayer_map.erase(itlow) ;
+        }
+        
+    }
+    return ret_val ;
+}
+
+uint64_t Wrapper_Chain::Calculate_TSV(multimap<uint8_t, uint64_t>& tem_inLayer_to_id)
+{
+    //if (_inLayer_to_id->size() == 1)    return 0 ;
+
+    // Copies all elements
+    //auto tem_inLayer_to_id = *_inLayer_to_id;
+    uint8_t near_outLayer = 0 ;
+    uint64_t tsv_count = 0 ;
+
+    uint64_t sc_id = Get_Nearest_InLayer(tem_inLayer_to_id, near_outLayer) ;
+    scanchain_t new_sc_ele = _id_to_sc->find(sc_id)->second ;
+
+    while (tem_inLayer_to_id.size() > 0)
+    {
+        scanchain_t sc_ele = new_sc_ele;
+        sc_id = Get_Nearest_InLayer(tem_inLayer_to_id, sc_ele.out_layer) ;
+        new_sc_ele = _id_to_sc->find(sc_id)->second ;
+        tsv_count += (uint64_t)abs(sc_ele.out_layer - new_sc_ele.in_layer) ;
+    }
+    
+    return tsv_count ;
+}
+
+void Wrapper_Chain::Initialize_TSV_Count()
+{
+    auto tem = *_inLayer_to_id ;
+    _tsv_count = Calculate_TSV(tem) ;
+}
+
+uint64_t Wrapper_Chain::Get_TSV_insertion(const scanchain_t ele)
+{
+    auto tem = *_inLayer_to_id ;
+
+    tem.insert({ele.in_layer, ele.sc_id}) ;
+
+    return Calculate_TSV(tem) ;
+}
+
+uint64_t Wrapper_Chain::Get_TSV_deletion(const scanchain_t ele)
+{
+    auto tem = *_inLayer_to_id ;
+
+    auto it = tem.equal_range(ele.in_layer) ;
+    
+    for (auto i = it.first; i != it.second; i++)
+    {
+        if (i->second == ele.sc_id) {
+            tem.erase(i) ;
+            return Calculate_TSV(tem) ;
+        }
     }
 }

@@ -36,12 +36,21 @@ void Wrapper_Optimizer::Two_Phase_Optimizer(uint8_t max_layer, uint8_t wrapper_c
 
     Initialize_WrapperChains() ;    //Initializes the Wrapper Chain
     Initialize_TT_Mover() ;    //Initializes _tt_move_array
+    Initialize_WrapperChain_TSV() ; //Initializes Wrapper Chain's TSV
 
     Count_TSV() ;   // Counts the current TSV
     Count_TT() ;    // Counts current Test Time
 
     //Simulated_Annelation() ;
 
+}
+
+void Wrapper_Optimizer::Initialize_WrapperChain_TSV() 
+{
+    for (uint64_t i = 0; i < _wc_count; i++)
+    {
+        _wc_array->at(i)->Initialize_TSV_Count() ;
+    }
 }
 
 void Wrapper_Optimizer::Initialize_TT_Mover()
@@ -68,6 +77,55 @@ void Wrapper_Optimizer::Initialize_TT_Mover()
             _tt_mover->Update_TT_Move(tem) ;
         }
     }
+}
+
+void Wrapper_Optimizer::WrapperChain_TT_Update(uint64_t wc_id) 
+{
+    uint64_t sc_id ;
+    // Updates tt movement from wc_id to others
+    for (uint64_t i = 0; i < _wc_count; i++)
+    {
+        tt_move_t tem ;
+        tem.destination_wc = i ;
+        tem.source_wc = wc_id ;
+
+        if (i == wc_id) {
+            //sc_id = _wc_array->at(i)->Get_Closest_TT_id(0) ; 
+            continue ;
+        } else if (_wc_array->at(wc_id)->Get_tt() <= _wc_array->at(i)->Get_tt()) {
+            sc_id = _wc_array->at(wc_id)->Get_Closest_TT_id(0) ;
+        } else {
+            uint64_t tt_key = _wc_array->at(wc_id)->Get_tt() - _wc_array->at(i)->Get_tt() ;
+            sc_id = _wc_array->at(wc_id)->Get_Closest_TT_id(tt_key) ;
+        }
+        tem.delta_entropy = Get_Delta_TT_Entropy(wc_id, i, sc_id) ;
+        tem.sc_id = sc_id ;
+        _tt_mover->Update_TT_Move(tem) ;
+
+    }
+
+    // Updates tt movement from others to wc_id
+    for (uint64_t i = 0; i < _wc_count; i++)
+    {
+        tt_move_t tem ;
+        tem.destination_wc = wc_id ;
+        tem.source_wc = i ;
+
+        if (i == wc_id) {
+            //sc_id = _wc_array->at(i)->Get_Closest_TT_id(0) ; 
+            continue ;
+        } else if (_wc_array->at(i)->Get_tt() <= _wc_array->at(wc_id)->Get_tt()) {
+            sc_id = _wc_array->at(i)->Get_Closest_TT_id(0) ;
+        } else {
+            uint64_t tt_key = _wc_array->at(i)->Get_tt() - _wc_array->at(wc_id)->Get_tt() ;
+            sc_id = _wc_array->at(i)->Get_Closest_TT_id(tt_key) ;
+        }
+        tem.delta_entropy = Get_Delta_TT_Entropy(i, wc_id, sc_id) ;
+        tem.sc_id = sc_id ;
+        _tt_mover->Update_TT_Move(tem) ;
+
+    }
+
 }
 
 void Wrapper_Optimizer::Initialize_WrapperChains()
@@ -136,32 +194,66 @@ void Wrapper_Optimizer::Minimize_TSV_Phase()
     
     // Returns change in TSV count, if scanchain sc_id is
     // moved to wc_id
-    int delta_tsv = Get_Delta_TSV(sc_id, wc_id) ;
+    const delta_tsv_t delta_tsv = Get_Delta_TSV(sc_id, wc_id) ;
 
     // Returns penalty in test time, if scanchain sc_id 
     // is moved to wc_id
     double tt_penalty = Get_TT_Penalty(sc_id, wc_id) ;
 
-    double gain = (-1 * ((double)delta_tsv/_tsv_count)) + (tt_penalty) ;
+    double gain = (-1 * ((double)delta_tsv.del_tsv/_tsv_count)) + (tt_penalty) ;
 
     if (gain >= 0) {
-        Move_SC(sc_id, wc_id, (_tsv_count + delta_tsv)) ;   // (_tsv_count + delta_tsv) is new tsv count
+        Move_SC(sc_id, wc_id, delta_tsv) ;   // (_tsv_count + delta_tsv) is new tsv count
     } else {
         double r = rand() % RAND_MAX ;
         if(r < exp(gain/_curr_T)) {
-            Move_SC(sc_id, wc_id, (_tsv_count + delta_tsv)) ;
+            Move_SC(sc_id, wc_id, delta_tsv) ;
         }
     }
 
 }
 
-void Wrapper_Optimizer::Move_SC(uint64_t sc_id, uint64_t wc_id, uint64_t new_tsv_count)
+const delta_tsv_t Wrapper_Optimizer::Get_Delta_TSV(uint64_t sc_id, uint64_t wc_id)
 {
+    uint64_t curr_tsv = _tsv_count ;
+    uint64_t curr_wc = _sc_array->at(sc_id).wrapper_chain ;
+
+    assert (curr_wc != wc_id) ;
+
+    uint64_t curr_source_tsv = _wc_array->at(curr_wc)->Get_tsv() ;
+    uint64_t curr_destination_tsv = _wc_array->at(wc_id)->Get_tsv() ;
+
+    delta_tsv_t tem ;
+
+    tem.source_new_tsv = _wc_array->at(curr_wc)->Get_TSV_deletion(_sc_array->at(sc_id)) ;
+    tem.destination_new_tsv = _wc_array->at(wc_id)->Get_TSV_insertion(_sc_array->at(sc_id)) ;
+
+    tem.del_tsv = (tem.destination_new_tsv + tem.source_new_tsv) - (curr_source_tsv + curr_destination_tsv) ;
+    tem.total_tsv = curr_tsv + tem.del_tsv ;
+
+    return tem ;
+}
+
+void Wrapper_Optimizer::Move_SC(uint64_t sc_id, uint64_t wc_id, const delta_tsv_t& delta_tsv)
+{
+    uint64_t pre_wc = _sc_array->at(sc_id).wrapper_chain ;
+
+    assert (wc_id != pre_wc) ;
+
     _sc_array->at(sc_id).wrapper_chain = wc_id ;
-    _tsv_count = new_tsv_count ;
+    _tsv_count = delta_tsv.total_tsv ;
+
+    _wc_array->at(pre_wc)->Delete_SC(sc_id) ;
+    _wc_array->at(pre_wc)->Set_tsv(delta_tsv.source_new_tsv) ;
+
+    _wc_array->at(wc_id)->Insert_SC(_sc_array->at(sc_id)) ;
+    _wc_array->at(wc_id)->Set_tsv(delta_tsv.destination_new_tsv) ;
+
+    WrapperChain_TT_Update(pre_wc) ;
+    WrapperChain_TT_Update(wc_id) ;
 }
 
 void Wrapper_Optimizer::Minimize_TT_Phase() 
 {
-
+    
 }
