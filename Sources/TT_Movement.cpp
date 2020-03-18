@@ -2,6 +2,8 @@
 
 void TT_Movement::Update_TT_Move(tt_move_t val)
 {
+    if (val.source_wc == val.destination_wc)    return ;
+    
     auto it = _dir_to_val->find(make_pair(val.source_wc, val.destination_wc)) ;
     if (it != _dir_to_val->end()) {
         auto it_val = _val_to_dir->equal_range(it->second) ;

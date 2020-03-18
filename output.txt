@@ -1,0 +1,19 @@
+Initialization done
+Initial Solution time taken in miliseconds = 0
+TSV count = 17
+
+Before SA. total TSV = 17
+
+Before SA. Calculated TSV = 17
+Max TT = 9454
+
+Simulated Annelation time taken in miliseconds = 78
+
+ Total TSV = 4
+
+
+ TSV calculated = 5
+
+ Max TT = 11539
+
+Tokenizer Killed

@@ -1,5 +1,12 @@
 #include "SoC_Lexer.h"
 
+void SoC_Lexer::Init_SoC_Lexer()
+{
+    assert (_scanchains == 0) ;
+
+    _scanchains = Get_SoC_scanchains() ;
+}
+
 vector<scanchain_t>* SoC_Lexer::Get_SoC_scanchains()
 {
     vector<scanchain_t> *scanchains =  new vector<scanchain_t> ;
@@ -42,18 +49,15 @@ uint8_t SoC_Lexer::Get_scanchain()
 
 vector<scanchain_t>* SoC_Lexer::Get_RandLayer_scanchains(uint8_t max_layer)
 {
-    vector<scanchain_t> *scanchains = Get_SoC_scanchains() ;
-
-    // Initializes the random seed
-    //srand(time(NULL)) ;
-
-    for (uint64_t i = 0; i < scanchains->size(); i++)
+    assert (_scanchains != 0) ;
+    
+    for (uint64_t i = 0; i < _scanchains->size(); i++)
     {
-        scanchains->at(i).in_layer = rand() % max_layer ;
-        scanchains->at(i).out_layer = rand() % max_layer ;
-        scanchains->at(i).sc_id = i ;
+        _scanchains->at(i).in_layer = rand() % max_layer ;
+        _scanchains->at(i).out_layer = rand() % max_layer ;
+        _scanchains->at(i).sc_id = i ;
         //cout<<"Sc_tt = "<<scanchains->at(i).test_time<<"\tin_layer = "<<to_string(scanchains->at(i).in_layer)<<"\tout_layer = "<<to_string(scanchains->at(i).out_layer)<<"\twrapper chain = "<<to_string(scanchains->at(i).wrapper_chain)<<endl ;
     }
 
-    return scanchains ;
+    return _scanchains ;
 }

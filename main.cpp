@@ -1,5 +1,4 @@
-#include "SoC_Lexer.h"
-#include "Wrapper_Optimizer.h"
+#include "Optimizer_Comparator.h"
 #include<stdlib.h>
 #include<time.h>
 #include<map>
@@ -11,9 +10,10 @@ int main()
     //Initializes rand seed
     srand(time(NULL)) ;
 
-    SoC_Lexer sc_lex("Benchmarks/a586710.soc") ;
-    //sc_lex.Get_SoC_scanchains() ; 
-    Wrapper_Optimizer wo = Wrapper_Optimizer(sc_lex.Get_RandLayer_scanchains(6)) ;
-    wo.Two_Phase_Optimizer(6, 4) ;
+    //SoC_Lexer sc_lex("Benchmarks/d281.soc") ;
+    
+    Optimizer_Comparator *op_comp = new Optimizer_Comparator() ;
+    op_comp->Compare("Benchmarks/d281.soc") ;
+    delete op_comp ;
     return 0;
 }

@@ -13,7 +13,7 @@ using namespace std ;
 class Wrapper_Chain
 {
     public:
-        Wrapper_Chain(uint8_t id) : _wc_id(id), _test_time((uint64_t)0), _tsv_count((uint64_t)0)
+        Wrapper_Chain(uint64_t id) : _wc_id(id), _test_time((uint64_t)0), _tsv_count((uint64_t)0)
         {
             _id_to_sc = new map<uint64_t, scanchain_t> ;
             _tt_to_id = new multimap<uint64_t, uint64_t> ;
@@ -22,9 +22,11 @@ class Wrapper_Chain
 
         ~Wrapper_Chain()
         {
+            cout<<"Wrapper chain destrutor called"<<endl;
             delete _id_to_sc ;
             delete _tt_to_id ;
             delete _inLayer_to_id ;
+            cout<<"Wrapper chain destrutor finished"<<endl;
         }
 
         void Insert_SC (const scanchain_t ele) ;
@@ -43,7 +45,7 @@ class Wrapper_Chain
         uint64_t Get_Nearest_InLayer(multimap<uint8_t, uint64_t> &inLayer_map, uint8_t key) ;
 
     private:
-        uint8_t _wc_id ;
+        uint64_t _wc_id ;
         map<uint64_t, scanchain_t> *_id_to_sc ;
         multimap<uint64_t, uint64_t> *_tt_to_id ;
         multimap<uint8_t, uint64_t> *_inLayer_to_id ;

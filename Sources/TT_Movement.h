@@ -2,6 +2,7 @@
 #define TT_MOVEMENT_H
 
 #include "Wrapper_Chain.h"
+#include<iostream>
 #include<map>
 #include<set>
 #include<queue>
@@ -35,14 +36,17 @@ class TT_Movement
             _val_to_dir = new multimap<double, tt_dir_t> ;
             _tt_lock_set = new set<tuple<uint64_t, uint64_t, uint64_t>> ;
             _tt_lock_queue = new queue<tt_dir_t> ;
+            //std::cerr<<"tt_mover created"<<std::endl;
         }
 
         ~TT_Movement()
         {
+            //std::cerr<<"tt_mover destructor called"<<std::endl;
             delete _dir_to_val ;
             delete _val_to_dir ;
             delete _tt_lock_set ;
             delete _tt_lock_queue ;
+            //std::cerr<<"tt_mover deleted"<<std::endl;
         }
 
         void Update_TT_Move(tt_move_t val) ;

@@ -3,6 +3,7 @@
 
 #include<iostream>
 #include<string>
+#include<assert.h>
 #include"Header.h"
 #include"ut_Tokenizer.h"
 #include<vector>
@@ -28,23 +29,27 @@ class SoC_Lexer
         explicit SoC_Lexer(const char *file)
         {
             _tok = new ut_Tokenizer(file, _delimeters.c_str(), _special_Char_Set.c_str()) ;
+            _scanchains = 0 ;
         }
 
         ~SoC_Lexer()
         {
+            delete _scanchains ;
             delete _tok ;
             cout <<"Tokenizer Killed" ;
         }
 
-        vector<scanchain_t>* Get_SoC_scanchains() ;
+        void Init_SoC_Lexer() ;
         vector<scanchain_t>* Get_RandLayer_scanchains(uint8_t max_layer = 2) ;
 
     private:
+        vector<scanchain_t>* Get_SoC_scanchains() ;
         uint8_t Get_scanchain() ;
 
         
     private:
-        ut_Tokenizer* _tok = 0;
+        ut_Tokenizer* _tok ;
+        vector<scanchain_t>* _scanchains ;
         string  _delimeters = "\n\t\r";
         string _special_Char_Set = ":";
         uint64_t _sc_tt = (uint64_t)0 ;        // holds the tets time of the parsed scanchain
