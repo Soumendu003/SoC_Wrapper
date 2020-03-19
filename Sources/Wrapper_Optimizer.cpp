@@ -129,15 +129,20 @@ void Wrapper_Optimizer::WrapperChain_TT_Update(uint64_t wc_id)
             //sc_id = _wc_array->at(i)->Get_Closest_TT_id(0) ; 
             continue ;
         } else if (_wc_array->at(wc_id)->Get_tt() <= _wc_array->at(i)->Get_tt()) {
-            sc_id = _wc_array->at(wc_id)->Get_Closest_TT_id(0) ;
+            sc_id = _wc_array->at(wc_id)->Get_Closest_TT_id((uint64_t)0) ;
         } else {
             uint64_t tt_key = _wc_array->at(wc_id)->Get_tt() - _wc_array->at(i)->Get_tt() ;
             sc_id = _wc_array->at(wc_id)->Get_Closest_TT_id(tt_key) ;
         }
-        tem.delta_entropy = Get_Delta_TT_Entropy(wc_id, i, sc_id) ;
-        tem.sc_id = sc_id ;
-        _tt_mover->Update_TT_Move(tem) ;
 
+        if (sc_id >= _sc_array->size()) {
+            tem.delta_entropy = -100 ;
+            tem.sc_id = -1 ;
+        } else {
+            tem.delta_entropy = Get_Delta_TT_Entropy(wc_id, i, sc_id) ;
+            tem.sc_id = sc_id ;
+        } 
+        _tt_mover->Update_TT_Move(tem) ;
     }
 
     // Updates tt movement from others to wc_id
@@ -156,10 +161,15 @@ void Wrapper_Optimizer::WrapperChain_TT_Update(uint64_t wc_id)
             uint64_t tt_key = _wc_array->at(i)->Get_tt() - _wc_array->at(wc_id)->Get_tt() ;
             sc_id = _wc_array->at(i)->Get_Closest_TT_id(tt_key) ;
         }
-        tem.delta_entropy = Get_Delta_TT_Entropy(i, wc_id, sc_id) ;
-        tem.sc_id = sc_id ;
+        
+        if (sc_id >= _sc_array->size()) {
+            tem.delta_entropy = -100 ;
+            tem.sc_id = -1 ;
+        } else {
+            tem.delta_entropy = Get_Delta_TT_Entropy(wc_id, i, sc_id) ;
+            tem.sc_id = sc_id ;
+        } 
         _tt_mover->Update_TT_Move(tem) ;
-
     }
 
 }

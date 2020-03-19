@@ -53,11 +53,15 @@ uint8_t Wrapper_Chain::Delete_SC(const uint64_t sc_id)
 
 uint64_t Wrapper_Chain::Get_Closest_TT_id(uint64_t tt_key) {
 
+    //assert (_tt_to_id->size() > 0) ;
+
+    if (_tt_to_id->size() == 0) {
+        return -1 ;
+    }
+
     if (tt_key == 0) {
         return _tt_to_id->begin()->second ;
     }
-
-    assert (_tt_to_id->size() > 0) ;
 
     if (_tt_to_id->size() == 1)
     {
