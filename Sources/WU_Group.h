@@ -3,6 +3,7 @@
 
 #include "SoC_Lexer.h"
 #include "Wrapper_Chain.h"
+#
 #include<map>
 #include<vector>
 
@@ -19,7 +20,6 @@ class WU_Group
             _wc_id_array = new vector<uint64_t> ;
             _max_tt = (uint64_t)0 ;
             _tsv_count = (uint64_t)0 ;
-            _freeze_since_last_tad = (uint8_t)0 ;       // Not freezed
             _sub_grp1 = 0 ;
             _sub_grp2 = 0 ;
         }
@@ -42,17 +42,20 @@ class WU_Group
         WU_Group* Get_SubGroup1() { return _sub_grp1 ; }
         WU_Group* Get_SubGroup2() { return _sub_grp2 ; }
         vector<uint64_t>* Get_ScanchainIDs() ;
+        vector<scanchain_t>* Get_Scanchains() ;
         uint64_t Get_Max_tt() { return _max_tt ; }
         uint64_t Get_TSV() { return _tsv_count ; }
+        const vector<uint64_t>* Get_WC_id_array() { return _wc_id_array ; }
         void Set_Insert_all_SC_IDs(set<uint64_t> *set_ele) ;
         double Calculate_Gain(const uint64_t sc_id) ;
         uint64_t Get_WC_Size() { return _wc_id_array->size() ;}
         void Store_state() ;
         void Restore_state() ;
+        double Get_adj() ;
+        void Set_TAD_result(uint64_t max_tt, uint64_t tsv_count) ;
 
     private:
         void Update_SC_SubGroup(const uint64_t sc_id, const uint8_t grp) ;
-        void Set_Max_tt(uint64_t tt_max) { _max_tt = tt_max ; }
 
     private:
         map<uint64_t, scanchain_t> *_id_to_sc ;
@@ -61,7 +64,6 @@ class WU_Group
         vector<uint64_t> *_wc_id_array ;
         uint64_t _max_tt ;
         uint64_t _tsv_count ;
-        uint8_t _freeze_since_last_tad ;
         WU_Group *_sub_grp1 ;
         WU_Group *_sub_grp2 ;
 };

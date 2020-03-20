@@ -117,6 +117,17 @@ vector<uint64_t>* WU_Group::Get_ScanchainIDs()
     return ret_array ;
 }
 
+vector<scanchain_t>* WU_Group::Get_Scanchains()
+{
+    vector<scanchain_t> *ret_array  = new vector<scanchain_t> ;
+
+    for (auto it = _id_to_sc->begin(); it != _id_to_sc->end(); it++)
+    {
+        ret_array->push_back(it->second) ;
+    }
+    return ret_array ;
+}
+
 void WU_Group::Set_Insert_all_SC_IDs(set<uint64_t> *set_ele)
 {
     for (auto it = _id_to_sc->begin(); it != _id_to_sc->end(); it++)
@@ -148,4 +159,29 @@ void WU_Group::Restore_state()
     }
 
     _stored_id_to_group->clear() ;
+}
+
+double WU_Group::Get_adj() 
+{
+    assert (_wc_id_array->size() > 1) ;
+    assert (_id_to_sc->size() > 0) ;
+
+    double ret_val = 1.3 ;
+
+    ret_val += (3*(_wc_id_array->size() - 2)) / (_id_to_sc->size() * 1.6 ) ;
+
+    if (ret_val > 2.9)
+    {
+        return 2.9 ;
+    } else if (ret_val < 1.3)
+    {
+        return 1.3 ;
+    }
+    return ret_val ;
+}
+
+void WU_Group::Set_TAD_result(uint64_t max_tt, uint64_t tsv_count)
+{
+    _max_tt = max_tt ;
+    _tsv_count = tsv_count ;
 }
