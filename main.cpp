@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<time.h>
 #include<map>
+#include<iostream>
 
 using namespace std ;
 
@@ -14,7 +15,7 @@ int main()
     
     Optimizer_Comparator *op_comp = new Optimizer_Comparator() ;
 
-    op_comp->Init_Comparator("Compare_Soc.csv") ;
+    op_comp->Init_Comparator("Compare1_Soc.csv") ;
 
     op_comp->Compare("Benchmarks/d281.soc") ;
     op_comp->Compare("Benchmarks/a586710.soc") ;
@@ -24,7 +25,6 @@ int main()
     op_comp->Compare("Benchmarks/h953.soc") ;
     op_comp->Compare("Benchmarks/p22810.soc") ;
     op_comp->Compare("Benchmarks/p34392.soc") ;
-    op_comp->Compare("Benchmarks/d93791.soc") ;
     op_comp->Compare("Benchmarks/q12710.soc") ;
     op_comp->Compare("Benchmarks/t512505.soc") ;
     op_comp->Compare("Benchmarks/u226.soc") ;
