@@ -4,7 +4,6 @@ void WU_Group::Insert_SC(const scanchain_t ele)
 {
     if (_id_to_sc->find(ele.sc_id) == _id_to_sc->end()) {
         _id_to_sc->insert({ele.sc_id, ele}) ;
-        _freeze_since_last_tad = (uint8_t)0 ;       // Inserted some scanchain. So not freezed.
     } else {
         std::cerr << "Scanchain element of id = " << std::to_string(ele.sc_id) << " already in the Sub Group. Can't insert again." <<std::endl ;
         exit(0) ;
@@ -16,7 +15,6 @@ uint8_t WU_Group::Delete_SC(const uint64_t sc_id)
     auto it = _id_to_sc->find(sc_id) ;
     if (it != _id_to_sc->end()) {
         _id_to_sc->erase(it) ;
-        _freeze_since_last_tad = (uint8_t)0 ;      // Deleted some scanchain. So not freezed.
         return 1 ;
     } else {
         std::cerr << "Scanchain element of id = " << std::to_string(sc_id) << "\tnot in the Sub Group. Can't delete." <<std::endl ;

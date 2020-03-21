@@ -240,8 +240,12 @@ void Wrapper_Optimizer::Simulated_Annelation(two_phase_result_t *ret_val)
     //std::cout<<"Simulated Annelation time taken in miliseconds = "+to_string(duration.count())<<std::endl ;
     ret_val->simulated_annelation_time = to_string(duration.count()) ;
 
-    
-    ret_val->final_tsv = Get_Count_TSV() ;
+    uint64_t final_tsv_calculated = Get_Count_TSV() ;
+    if (final_tsv_calculated < _tsv_count){
+        ret_val->final_tsv = final_tsv_calculated ;
+    } else {
+        ret_val->final_tsv = _tsv_count ;
+    }
     ret_val->final_max_tt = Get_Test_Time() ;
 }
 

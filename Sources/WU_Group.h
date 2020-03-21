@@ -47,7 +47,7 @@ class WU_Group
         uint64_t Get_TSV() { return _tsv_count ; }
         const vector<uint64_t>* Get_WC_id_array() { return _wc_id_array ; }
         void Set_Insert_all_SC_IDs(set<uint64_t> *set_ele) ;
-        double Calculate_Gain(const uint64_t sc_id) ;
+        //double Calculate_Gain(const uint64_t sc_id) ;
         uint64_t Get_WC_Size() { return _wc_id_array->size() ;}
         void Store_state() ;
         void Restore_state() ;
