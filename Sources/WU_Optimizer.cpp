@@ -22,6 +22,7 @@ solution_t* WU_Optimizer::Init_Optimizer()
     cerr<<"Calling Main Scan_chain_Assignment func"<<endl ;
 
     solution_t *ret_val = Scan_Chains_Assignment(group) ;
+    ret_val->tsv_count = IO_Assignment() ;
     delete group ;
 
     return ret_val ;
@@ -294,6 +295,7 @@ void WU_Optimizer::First_Assignment(vector<tad_chain_t> *std_greater_chains, vec
         WC_array->at(wc_i)->Insert_sc(std_greater_chains->at(i).sc) ;
         WC_array->at(wc_i)->Sum_TAM += std_greater_chains->at(i).tt_key ;
         WC_array->at(wc_i)->No_TAM += 1 ;
+        _scanchains->at(std_greater_chains->at(i).sc.sc_id).wrapper_chain = WC_array->at(wc_i)->wc_id ;
         wc_i += 1 ;
     }
 }
@@ -307,17 +309,18 @@ void WU_Optimizer::Second_Assignment(vector<tad_chain_t>* D, vector<tam_t*>* WC_
         if (D->at(i).sc_flag) {
             auto it = min_element(WC_array->begin(), WC_array->end(), tam_t::Compare_Sum_TAM) ;
 
-            assert (it != WC_array->end()) ;
+            //assert (it != WC_array->end()) ;
 
             tam_t *ele = *it ;
             ele->Insert_sc(D->at(i).sc) ;
             ele->Sum_TAM += D->at(i).tt_key ;
+            _scanchains->at(D->at(i).sc.sc_id).wrapper_chain = ele->wc_id ;
 
         } else {
             if (D->at(i).tt_key >= 0){
                 auto it = min_element(WC_array->begin(), WC_array->end(), tam_t::Compare_Sum_TAM_positive_No_TAM) ;
 
-                assert(it != WC_array->end()) ;
+                //assert(it != WC_array->end()) ;
 
                 tam_t *ele = *it ;
                 if (ele->No_TAM <= 0) {
@@ -330,7 +333,7 @@ void WU_Optimizer::Second_Assignment(vector<tad_chain_t>* D, vector<tam_t*>* WC_
             } else{
                 auto it = max_element(WC_array->begin(), WC_array->end(), tam_t::Compare_Sum_TAM_positive_No_TAM) ;
 
-                assert(it != WC_array->end()) ;
+                //assert(it != WC_array->end()) ;
 
                 tam_t *ele = *it ;
                 if (ele->No_TAM <= 0) {
@@ -348,7 +351,7 @@ void WU_Optimizer::Second_Assignment(vector<tad_chain_t>* D, vector<tam_t*>* WC_
 
 solution_t* WU_Optimizer::TAD(WU_Group *group)
 {
-    assert (group->Get_WC_Size() > 0) ;
+    //assert (group->Get_WC_Size() > 0) ;
 
     vector<scanchain_t> *Scanchains = 0 ;
     vector<tam_t*> *WC_array = 0 ;
@@ -441,13 +444,26 @@ void WU_Optimizer::Calculate_TSV(vector<tam_t*>* WC_array)
     }
 }
 
-void WU_Optimizer::Calculate_TSV_tam(tam_t &tam_chain)
+void WU_Optimizer::Calculate_TSV_tam(tam_t &tam_chain, bool io_flag)
 {
     tam_chain.tsv_count = 0 ;
+
+    if (tam_chain.sc_array->size() == 0)
+    {
+        tam_chain.tsv_count = 0 ;
+        tam_chain.scan_in_layer = (uint8_t)0 ;
+        tam_chain.scan_out_layer = (uint8_t)0 ;
+        return ;
+    }
 
     vector<tsv_node_t> *node_array = new vector<tsv_node_t> ;
     set<uint64_t> *node_id_set = new set<uint64_t> ;
     vector<tsv_edge_t> *edge_array = new vector<tsv_edge_t> ;
+
+    vector<scan_in_out_flag> *in_out_flag_array = 0 ;
+    if (io_flag) {
+        in_out_flag_array = new vector<scan_in_out_flag> ;
+    }
 
     uint64_t id = 0 ;
     for (uint64_t i = 0; i < tam_chain.sc_array->size(); i++)
@@ -455,6 +471,7 @@ void WU_Optimizer::Calculate_TSV_tam(tam_t &tam_chain)
         tsv_node_t in_node;
         in_node.node_id = id ;
         in_node.node_layer = tam_chain.sc_array->at(i).in_layer ;
+        in_node.node_type = wrapper_element_type::IN_CELL ;
         node_array->push_back(in_node) ;
         node_id_set->insert(id) ;
         id += 1 ;
@@ -462,16 +479,18 @@ void WU_Optimizer::Calculate_TSV_tam(tam_t &tam_chain)
         tsv_node_t out_node;
         out_node.node_id = id ;
         out_node.node_layer = tam_chain.sc_array->at(i).out_layer ;
+        out_node.node_type = wrapper_element_type::OUT_CELL ;
         node_array->push_back(out_node) ;
         node_id_set->insert(id) ;
         id += 1 ;
     }
 
+
     for (uint64_t i = 0; i < node_array->size(); i++)
     {
         for (uint64_t j = 0; j < node_array->size(); j++)
         {
-            if (i != j ){
+            if (node_array->at(i).node_type == wrapper_element_type::OUT_CELL && node_array->at(j).node_type == wrapper_element_type::IN_CELL){
                 tsv_edge_t edge ;
                 edge.node_u = node_array->at(i).node_id ;
                 edge.node_v = node_array->at(j).node_id ;
@@ -483,11 +502,25 @@ void WU_Optimizer::Calculate_TSV_tam(tam_t &tam_chain)
                 edge_array->push_back(edge) ;
             }
         }
+        if (io_flag) {
+            scan_in_out_flag tem ;
+            tem.node_type = node_array->at(i).node_type ;
+            tem.flag = (uint8_t)0 ;
+            in_out_flag_array->push_back(tem) ;
+        }
     }
 
     sort(edge_array->begin(), edge_array->end(), tsv_edge_t::Compare_Desc) ;
 
-    while (node_id_set->size() > 0)
+    //assert(node_array->size() % 2 == 0) ;
+
+    uint64_t max_edge = (node_array->size() / 2) - 1 ;      // it has to be non-cyclic
+    if (io_flag) {
+        std::cout<<"max edge count = "<<std::to_string(max_edge)<<std::endl ;
+    }
+    uint64_t edge_count = 0 ;
+
+    while (edge_count != max_edge)
     {
         tsv_edge_t edge = edge_array->back() ;
 
@@ -495,12 +528,50 @@ void WU_Optimizer::Calculate_TSV_tam(tam_t &tam_chain)
             if (node_id_set->find(edge.node_v) != node_id_set->end()) {
                 tam_chain.tsv_count += edge.weight ;
                 node_id_set->erase(edge.node_u) ;
+                if (io_flag) {
+                    uint64_t own_id = node_array->at(edge.node_u).node_id ;
+                    in_out_flag_array->at(own_id).flag = (uint8_t)1 ;
+                    //assert(in_out_flag_array->at(own_id).node_type == wrapper_element_type::OUT_CELL) ;
+                }
                 node_id_set->erase(edge.node_v) ;
+                if (io_flag) {
+                    uint64_t own_id = node_array->at(edge.node_v).node_id ;
+                    in_out_flag_array->at(own_id).flag = (uint8_t)1 ;
+                    //assert(in_out_flag_array->at(own_id).node_type == wrapper_element_type::IN_CELL) ;
+                }
+                edge_count += 1 ;
             }
         }
         edge_array->pop_back() ;
     }
+    bool in_flag = false ;
+    bool out_flag = false ;
 
+    if (io_flag) {
+        for (uint64_t i = 0 ; i < in_out_flag_array->size() ; i++)
+        {
+            if (in_out_flag_array->at(i).node_type == wrapper_element_type::IN_CELL) {
+                if (in_out_flag_array->at(i).flag == (uint8_t)0) {
+                    tam_chain.scan_in_layer = node_array->at(i).node_layer ;
+                    //std::cout<< " scan_in node = "<<std::to_string(node_array->at(i).node_id)<<std::endl ;
+                    //assert(in_flag == false) ;
+                    in_flag = true ;
+                }
+            }
+
+            if (in_out_flag_array->at(i).node_type == wrapper_element_type::OUT_CELL) {
+                if (in_out_flag_array->at(i).flag == (uint8_t)0) {
+                    tam_chain.scan_out_layer = node_array->at(i).node_layer ;
+                    //std::cout<< " scan_out node = "<<std::to_string(node_array->at(i).node_id)<<std::endl ;
+                    //assert(out_flag == false) ;
+                    out_flag = true ;
+                }
+            }
+        }
+        //assert(in_flag && out_flag) ;
+    }
+
+    delete in_out_flag_array ;
     delete node_id_set ;
     delete node_array ;
     delete edge_array ;
@@ -529,5 +600,108 @@ double WU_Optimizer::Calculate_gain(WU_Group *group, uint64_t sc_id)
         return beta * new_tt + alpha ;
     } else {
         return beta * alpha - new_tt ;
+    }
+}
+
+uint64_t WU_Optimizer::IO_Assignment() 
+{
+    vector<tam_t*> *WC_Array = new vector<tam_t*> ;
+
+    for (uint64_t i = 0 ; i < _wc_count; i++)
+    {
+        WC_Array->push_back(new tam_t(i)) ;
+    }
+
+    for (uint64_t i = 0 ; i < _scanchains->size(); i++)
+    {
+        WC_Array->at(_scanchains->at(i).wrapper_chain)->Insert_sc(_scanchains->at(i)) ;
+        if (_scanchains->at(i).in_layer >= _scanchains->at(i).out_layer) {
+            if (WC_Array->at(_scanchains->at(i).wrapper_chain)->highest_layer < _scanchains->at(i).in_layer) {
+                WC_Array->at(_scanchains->at(i).wrapper_chain)->highest_layer = _scanchains->at(i).in_layer ;
+            } 
+        } else {
+            if (WC_Array->at(_scanchains->at(i).wrapper_chain)->highest_layer < _scanchains->at(i).out_layer) {
+                WC_Array->at(_scanchains->at(i).wrapper_chain)->highest_layer = _scanchains->at(i).out_layer ;
+            }
+        }
+    }
+
+    for (uint64_t i = 0; i < WC_Array->size(); i++)
+    {
+        std::cout << "TSV calculate with flag set "<<std::endl ;
+        Calculate_TSV_tam(*WC_Array->at(i), true) ;
+    }    
+
+    for (uint64_t i = 0; i < _io_cells->size(); i++) {
+        uint8_t assign_flag = 0 ;
+
+        for (uint64_t j = 0 ; j < WC_Array->size(); j++)
+        {
+            if (WC_Array->at(j)->highest_layer >= _io_cells->at(i).layer) {
+                IO_assign(*WC_Array->at(j), _io_cells->at(i)) ;
+                assign_flag = 1 ;
+                break ;
+            }
+        }
+
+        if (!assign_flag) {
+            uint8_t incr_val ;
+            uint8_t incr_flag = 0 ;
+            uint64_t wc_id ;
+            for (uint64_t j = 0 ; j < WC_Array->size(); j++)
+            {
+                if (!incr_flag) {
+                    incr_val = 2 * (_io_cells->at(i).layer - WC_Array->at(j)->highest_layer) ;
+                    incr_flag = 1 ;
+                    wc_id = j ;
+                } else {
+                    if (incr_val > 2 * (_io_cells->at(i).layer - WC_Array->at(j)->highest_layer)) {
+                        incr_val = 2 * (_io_cells->at(i).layer - WC_Array->at(j)->highest_layer) ;
+                        wc_id = j ;
+                    }
+                }
+            }
+            IO_assign(*WC_Array->at(wc_id), _io_cells->at(i)) ;
+        }
+
+    }
+    uint64_t tsv_count = 0 ;
+
+    for (uint64_t i = 0; i < WC_Array->size(); i++)
+    {
+        tsv_count += WC_Array->at(i)->tsv_count ;
+        tsv_count += WC_Array->at(i)->scan_in_layer ;
+        tsv_count += WC_Array->at(i)->scan_out_layer ;
+    }
+
+    for (uint64_t i = 0 ; i < _wc_count; i++)
+    {
+        delete WC_Array->at(i) ;
+    }
+    delete WC_Array ;
+    return tsv_count ;
+}
+
+void WU_Optimizer::IO_assign(tam_t &tam_chain, const io_cell_t &io_cell)
+{
+    if (io_cell.type == wrapper_element_type::IN_CELL) {
+        if (tam_chain.scan_in_layer >= io_cell.layer) {
+            tam_chain.tsv_count += (tam_chain.scan_in_layer - io_cell.layer) ;
+        } else {
+            tam_chain.tsv_count += (io_cell.layer - tam_chain.scan_in_layer) ;
+        }
+        tam_chain.scan_in_layer = io_cell.layer ;
+    }
+    if (io_cell.type == wrapper_element_type::OUT_CELL) {
+        if (tam_chain.scan_out_layer >= io_cell.layer) {
+            tam_chain.tsv_count += (tam_chain.scan_out_layer - io_cell.layer) ;
+        } else {
+            tam_chain.tsv_count += (io_cell.layer - tam_chain.scan_out_layer) ;
+        }
+        tam_chain.scan_out_layer = io_cell.layer ;
+    }
+
+    if (tam_chain.highest_layer < io_cell.layer) {
+        tam_chain.highest_layer= io_cell.layer ;
     }
 }

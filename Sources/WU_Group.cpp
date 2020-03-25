@@ -24,7 +24,7 @@ uint8_t WU_Group::Delete_SC(const uint64_t sc_id)
 
 void WU_Group::Randomly_Partition_SubGroups()
 {
-    assert (_wc_id_array->size() > 1) ;
+    //assert (_wc_id_array->size() > 1) ;
 
     delete _sub_grp1 ;
     delete _sub_grp2 ;
@@ -161,8 +161,8 @@ void WU_Group::Restore_state()
 
 double WU_Group::Get_adj() 
 {
-    assert (_wc_id_array->size() > 1) ;
-    assert (_id_to_sc->size() > 0) ;
+    //assert (_wc_id_array->size() > 1) ;
+    //assert (_id_to_sc->size() > 0) ;
 
     double ret_val = 1.3 ;
 

@@ -143,6 +143,8 @@ uint64_t Wrapper_Chain::Calculate_TSV(multimap<uint8_t, uint64_t>& tem_inLayer_t
 
     uint64_t sc_id = Get_Nearest_InLayer(tem_inLayer_to_id, near_outLayer) ;
     scanchain_t new_sc_ele = _id_to_sc->find(sc_id)->second ;
+    _scan_in_layer = new_sc_ele.in_layer ;
+    _scan_out_layer = new_sc_ele.out_layer ;
 
     while (tem_inLayer_to_id.size() > 0)
     {
@@ -150,6 +152,7 @@ uint64_t Wrapper_Chain::Calculate_TSV(multimap<uint8_t, uint64_t>& tem_inLayer_t
         scanchain_t sc_ele = new_sc_ele;
         sc_id = Get_Nearest_InLayer(tem_inLayer_to_id, sc_ele.out_layer) ;
         new_sc_ele = _id_to_sc->find(sc_id)->second ;
+        _scan_out_layer = new_sc_ele.out_layer ;
         tsv_count += (uint64_t)abs(sc_ele.out_layer - new_sc_ele.in_layer) ;
     }
     

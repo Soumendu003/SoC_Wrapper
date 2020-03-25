@@ -2,54 +2,78 @@
 
 void SoC_Lexer::Init_SoC_Lexer()
 {
-    assert (_scanchains == 0) ;
+    //assert (_scanchains == 0) ;
 
-    _scanchains = Get_SoC_scanchains() ;
+    Get_SoC_Wrapper_Elements() ;
 }
 
-vector<scanchain_t>* SoC_Lexer::Get_SoC_scanchains()
+void SoC_Lexer::Get_SoC_Wrapper_Elements()
 {
-    vector<scanchain_t> *scanchains =  new vector<scanchain_t> ;
-    scanchain_t tem_sc ;
-    while (Get_scanchain())
-    {
-        tem_sc.test_time = _sc_tt ;
-        tem_sc.out_layer = 0 ;
-        tem_sc.in_layer = 0 ;
-        tem_sc.wrapper_chain = 0 ;
-        scanchains->push_back(tem_sc) ;
-    }
-    return scanchains ;
-}
+    _scanchains = new vector<scanchain_t> ;
+    _io_cells = new vector<io_cell_t> ;
 
-uint8_t SoC_Lexer::Get_scanchain()
-{
-    char *lexeme = _tok->get_token() ;
-    if (_avail_sc > 0) {
-        _avail_sc -= 1 ;
-        _sc_tt = (uint64_t)atoi(lexeme) ;
-        return 1;
-    }
-    while (lexeme) 
-    {
-       if (Strcmpi(lexeme, "Scanchains") == 0) {
-            _avail_sc = (uint64_t)atoi(_tok->get_token()) ;      // gets no of scanchains available
-            
-            // gets  the symbol ':'
-            _tok->get_token() ;
+    char* lexeme = _tok->get_token() ;
 
-            return Get_scanchain() ;
+    while (lexeme)
+    {
+        if (Strcmpi(lexeme, "Scanchains") == 0) {
+            Get_scanchains() ;
+       } else if (Strcmpi(lexeme, "Inputs") == 0) {
+           Get_input_cell() ;
+       } else if (Strcmpi(lexeme, "Outputs") == 0) {
+           Get_output_cell() ;
        }
        lexeme = _tok->get_token() ;
     }
     
-    return 0 ;
+}
+
+void SoC_Lexer::Get_output_cell()
+{
+    _tok->get_token() ;  // Gets output port  size
+
+    io_cell_t tem ;
+    tem.io_id = _io_cells->size() ;
+    tem.type = wrapper_element_type::OUT_CELL ;
+    _io_cells->push_back(tem) ;
+}
+
+void SoC_Lexer::Get_input_cell()
+{
+    _tok->get_token() ;  // Gets input port  size
+
+    io_cell_t tem ;
+    tem.io_id = _io_cells->size() ;
+    tem.type = wrapper_element_type::IN_CELL ;
+    _io_cells->push_back(tem) ;
+}
+
+void SoC_Lexer::Get_scanchains()
+{
+    _avail_sc = (uint64_t)atoi(_tok->get_token()) ;      // gets no of scanchains available
+       
+    // gets  the symbol ':'
+    _tok->get_token() ;
+
+    char *lexeme = 0 ;
+    while (_avail_sc > 0)
+    {
+        lexeme = _tok->get_token() ;
+        _avail_sc -= 1 ;
+
+        _sc_tt = (uint64_t)atoi(lexeme) ;
+
+        scanchain_t tem ;
+        tem.sc_id = _scanchains->size() ;
+        tem.test_time = _sc_tt ;
+        _scanchains->push_back(tem) ;
+    }
 }
 
 
 vector<scanchain_t>* SoC_Lexer::Get_RandLayer_scanchains(uint8_t max_layer)
 {
-    assert (_scanchains != 0) ;
+    //assert (_scanchains != 0) ;
     
     for (uint64_t i = 0; i < _scanchains->size(); i++)
     {
@@ -60,4 +84,15 @@ vector<scanchain_t>* SoC_Lexer::Get_RandLayer_scanchains(uint8_t max_layer)
     }
 
     return _scanchains ;
+}
+
+vector<io_cell_t>* SoC_Lexer::Get_RandLayer_iocells(uint8_t max_layer)
+{
+    for (uint64_t i = 0; i < _io_cells->size(); i++)
+    {
+        _io_cells->at(i).layer = rand() % max_layer ;
+        _io_cells->at(i).io_id = i ;
+    }
+
+    return _io_cells ;
 }

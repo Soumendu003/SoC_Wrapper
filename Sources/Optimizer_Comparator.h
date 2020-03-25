@@ -31,6 +31,7 @@ class Optimizer_Comparator
         SoC_Lexer *_soc_lexer ;
         Wrapper_Optimizer *_wrapper_optimizer ;
         vector<scanchain_t> *_curr_scanchain ;
+        vector<io_cell_t> *_curr_io_cells ;
         csvfile *_csv ;
         char *_curr_benchmark ;
 

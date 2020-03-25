@@ -16,12 +16,18 @@ typedef struct{
     scanchain_t sc ;
 } tad_chain_t ;
 
-typedef struct{
+typedef struct {
     uint64_t node_id ;
     uint8_t node_layer ;
+    wrapper_element_type node_type ;
 } tsv_node_t ;
 
-typedef struct tsv_edge_t{
+typedef struct {
+    uint8_t flag ;
+    wrapper_element_type node_type ;
+} scan_in_out_flag ;
+
+typedef struct tsv_edge_t {
     uint64_t node_u ;
     uint64_t node_v ;
     uint8_t weight ;
@@ -40,10 +46,16 @@ typedef struct tam_t {
     long int No_TAM ;
     long int Sum_TAM ;
     vector<scanchain_t> *sc_array ;
+    uint8_t highest_layer ;
+    uint8_t scan_in_layer ;
+    uint8_t scan_out_layer ;
 
     tam_t(uint64_t id): wc_id(id), tsv_count((uint64_t)0), tt((uint64_t)0), No_TAM((long int)0), Sum_TAM((long int)0)
     {
         sc_array = new vector<scanchain_t> ;
+        highest_layer = (uint8_t)0 ;
+        scan_in_layer = (uint8_t)0 ;
+        scan_out_layer = (uint8_t)0 ;
     }
 
     ~tam_t()
@@ -80,18 +92,23 @@ typedef struct solution_t {
     void Copy(solution_t *sol) ;
 } solution_t ;
 
+typedef struct {
+    uint64_t wc_id ;
+    uint8_t tsv_incr_key ;
+} io_assign_ds ;
+
 class WU_Optimizer
 {
     public:
-        explicit WU_Optimizer(vector<scanchain_t> *scanchains, uint64_t wc_count)
-        : _scanchains(scanchains), _wc_count(wc_count), _highest_tt((uint64_t)0) {}
+        explicit WU_Optimizer(vector<scanchain_t> *scanchains, vector<io_cell_t> *io_cells, uint64_t wc_count)
+        : _scanchains(scanchains), _io_cells(io_cells), _wc_count(wc_count), _highest_tt((uint64_t)0) {}
 
         ~WU_Optimizer() {}
 
         solution_t* Init_Optimizer() ;
 
     private:
-
+        uint64_t IO_Assignment() ;
         solution_t *Scan_Chains_Assignment(WU_Group *parent_group) ;
         solution_t* TAD(WU_Group *group) ;
         solution_t* Merge_Solution(solution_t *sol1, solution_t *sol2) ;
@@ -107,7 +124,8 @@ class WU_Optimizer
         vector<tad_chain_t>* Get_D1_Array(vector<scanchain_t> *Scanchains, uint64_t standard_chain_tt, uint64_t mean_chain_tt) ;
         vector<tam_t*>* Get_WC_array(WU_Group *group) ;
         solution_t* Get_TAD_result(vector<tam_t*>* WC_array) ;
-        void Calculate_TSV_tam(tam_t &tam_chain) ;
+        void Calculate_TSV_tam(tam_t &tam_chain, bool io_flag = false) ;
+        void IO_assign(tam_t &tam_chain, const io_cell_t &io_cell) ;
 
     public:
         static bool TAD_chain_compare(tad_chain_t val1, tad_chain_t val2)
@@ -116,7 +134,8 @@ class WU_Optimizer
         }
 
     private:
-        const vector<scanchain_t> *_scanchains ;
+        vector<scanchain_t> *_scanchains ;
+        const vector<io_cell_t> *_io_cells ;
         uint64_t _wc_count ;
         uint64_t _highest_tt ;
 };

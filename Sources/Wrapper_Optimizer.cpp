@@ -73,7 +73,16 @@ two_phase_result_t * Wrapper_Optimizer::Two_Phase_Optimizer(uint8_t max_layer, u
     Initialize_TT_Mover() ;    //Initializes _tt_move_array
     Initialize_WrapperChain_TSV() ; //Initializes Wrapper Chain's TSV
 
+    auto start_main = chrono::high_resolution_clock::now();
+
     Simulated_Annelation(ret_val) ;
+
+    ret_val->final_tsv = IO_Cell_Assignment() ;
+
+    auto stop_main = chrono::high_resolution_clock::now();
+    auto duration_main = chrono::duration_cast<chrono::milliseconds>(stop_main - start_main);
+
+    ret_val->main_time = to_string(duration_main.count()) ;
 
     return ret_val ;
 }
@@ -211,11 +220,10 @@ void Wrapper_Optimizer::Simulated_Annelation(two_phase_result_t *ret_val)
     ret_val->init_tsv = _tsv_count ;
     ret_val->init_max_tt = Get_Test_Time() ;
 
-    assert (_tsv_count == Get_Count_TSV()) ;
+    //assert (_tsv_count == Get_Count_TSV()) ;
     double T = 60000 ;    // Initial Temperature
     uint16_t step = _sc_array->size() ;     //No os intermediate step per T(temperature) value
 
-    auto start = chrono::high_resolution_clock::now();
     while (T > 1)
     {
         _curr_T = T ;
@@ -234,18 +242,7 @@ void Wrapper_Optimizer::Simulated_Annelation(two_phase_result_t *ret_val)
         T = 0.9*T ;     // reduces the T value 10%
         
     }
-    auto stop = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
 
-    //std::cout<<"Simulated Annelation time taken in miliseconds = "+to_string(duration.count())<<std::endl ;
-    ret_val->simulated_annelation_time = to_string(duration.count()) ;
-
-    uint64_t final_tsv_calculated = Get_Count_TSV() ;
-    if (final_tsv_calculated < _tsv_count){
-        ret_val->final_tsv = final_tsv_calculated ;
-    } else {
-        ret_val->final_tsv = _tsv_count ;
-    }
     ret_val->final_max_tt = Get_Test_Time() ;
 }
 
@@ -263,7 +260,7 @@ void Wrapper_Optimizer::Minimize_TSV_Phase()
     
     // Returns change in TSV count, if scanchain sc_id is
     // moved to wc_id
-    assert(_sc_array->at(sc_id).wrapper_chain != wc_id) ;
+    //assert(_sc_array->at(sc_id).wrapper_chain != wc_id) ;
     const delta_tsv_t delta_tsv = Get_Delta_TSV(sc_id, wc_id) ;
 
     // Returns test time penalty, if scanchain sc_id 
@@ -289,7 +286,7 @@ const delta_tsv_t Wrapper_Optimizer::Get_Delta_TSV(uint64_t sc_id, uint64_t dest
     uint64_t curr_tsv = _tsv_count ;
     uint64_t curr_wc = _sc_array->at(sc_id).wrapper_chain ;
 
-    assert (curr_wc != destination_wc) ;
+    //assert (curr_wc != destination_wc) ;
 
     uint64_t curr_source_tsv = _wc_array->at(curr_wc)->Get_tsv() ;
     uint64_t curr_destination_tsv = _wc_array->at(destination_wc)->Get_tsv() ;
@@ -297,7 +294,7 @@ const delta_tsv_t Wrapper_Optimizer::Get_Delta_TSV(uint64_t sc_id, uint64_t dest
 
     delta_tsv_t tem ;
 
-    assert(_sc_array->at(sc_id).sc_id == sc_id) ;
+    //assert(_sc_array->at(sc_id).sc_id == sc_id) ;
 
     tem.source_new_tsv = _wc_array->at(curr_wc)->Get_TSV_deletion(_sc_array->at(sc_id)) ;
     tem.destination_new_tsv = _wc_array->at(destination_wc)->Get_TSV_insertion(_sc_array->at(sc_id)) ;
@@ -307,7 +304,7 @@ const delta_tsv_t Wrapper_Optimizer::Get_Delta_TSV(uint64_t sc_id, uint64_t dest
     tem.del_tsv = (int)(tem.destination_new_tsv + tem.source_new_tsv) - (int)(curr_source_tsv + curr_destination_tsv) ;
     //std::cout << "\n\nDelta TSV = " << std::to_string(tem.del_tsv) << std::endl ;
     tem.total_tsv = (curr_tsv + tem.del_tsv) ;
-    assert(tem.del_tsv == (int)(tem.total_tsv - curr_tsv)) ;
+    //assert(tem.del_tsv == (int)(tem.total_tsv - curr_tsv)) ;
 
     return tem ;
 }
@@ -316,7 +313,7 @@ void Wrapper_Optimizer::Move_SC(uint64_t sc_id, uint64_t wc_id, const delta_tsv_
 {
     uint64_t pre_wc = _sc_array->at(sc_id).wrapper_chain ;
 
-    assert (wc_id != pre_wc) ;
+    //assert (wc_id != pre_wc) ;
 
     _sc_array->at(sc_id).wrapper_chain = wc_id ;
     _tsv_count = delta_tsv.total_tsv ;
@@ -345,7 +342,7 @@ void Wrapper_Optimizer::Minimize_TT_Phase()
         std::cerr<<"move key = "<<std::to_string(move_ele.delta_entropy)<<std::endl ;
         std::cerr<<"sc source_wc = "<<std::to_string(_sc_array->at(move_ele.sc_id).wrapper_chain)<<std::endl ;
     }
-    assert (move_ele.destination_wc != _sc_array->at(move_ele.sc_id).wrapper_chain) ;
+    //assert (move_ele.destination_wc != _sc_array->at(move_ele.sc_id).wrapper_chain) ;
     //assert (move_ele.destination_wc != move_ele.source_wc) ;
 
     const delta_tsv_t delta_tsv = Get_Delta_TSV(move_ele.sc_id, move_ele.destination_wc) ;
@@ -373,7 +370,7 @@ double Wrapper_Optimizer::Get_TT_Penalty(uint64_t sc_id, uint64_t destination_wc
 {
     uint64_t source_wc = _sc_array->at(sc_id).wrapper_chain ;
 
-    assert (source_wc != destination_wc) ;
+    //assert (source_wc != destination_wc) ;
 
     double del_entropy = Get_Delta_TT_Entropy(source_wc, destination_wc, sc_id) ;
 
@@ -424,7 +421,7 @@ void Wrapper_Optimizer::copy_result(two_phase_result_t *to_var, two_phase_result
     to_var->init_max_tt = from_var->init_max_tt ;
     to_var->init_tsv = from_var->init_tsv ;
     to_var->initial_partition_time = from_var->initial_partition_time ;
-    to_var->simulated_annelation_time = from_var->simulated_annelation_time ;   
+    to_var->main_time = from_var->main_time ;   
 }
 
 bool Wrapper_Optimizer::greater_than_result(two_phase_result_t *var1, two_phase_result_t *var2)
@@ -438,4 +435,147 @@ bool Wrapper_Optimizer::greater_than_result(two_phase_result_t *var1, two_phase_
     }
 
     return false ;
+}
+
+multimap<uint8_t, uint64_t>::iterator& Wrapper_Optimizer::Get_best_WC_iterator(multimap<uint8_t, uint64_t> *layer_to_WCid, uint8_t key_layer)
+{
+    static multimap<uint8_t, uint64_t>::iterator itlow ;
+    static multimap<uint8_t, uint64_t>::iterator pre ;
+
+    itlow = layer_to_WCid->lower_bound(key_layer) ;
+
+    if (itlow == layer_to_WCid->begin()) {
+        return itlow ;
+    }
+
+    if (itlow == layer_to_WCid->end()) {
+        pre = std::prev(itlow) ;
+        return pre ;
+    } else {
+        pre = std::prev(itlow) ;
+        if ((key_layer - pre->first) < (itlow->first - key_layer)) {
+            return pre ;
+        } else {
+            return itlow ;
+        }
+    }
+}
+
+multimap<uint8_t, uint64_t>::iterator& Wrapper_Optimizer::Get_WC_iterator(multimap<uint8_t, uint64_t> *layer_to_WCid, uint8_t key_layer, uint64_t wc_id)
+{
+    static multimap<uint8_t, uint64_t>::iterator wc_it ;
+
+    auto it_range = layer_to_WCid->equal_range(key_layer) ;
+
+    for (auto it = it_range.first ; it != it_range.second; it++)
+    {
+        if (it->second == wc_id) {
+            wc_it = it ;
+            return wc_it ;
+        }
+    }
+}
+
+uint64_t Wrapper_Optimizer::IO_Cell_Assignment()
+{
+    set<uint64_t> *unassigned_io_cell = new set<uint64_t> ;
+    for (uint64_t i = 0 ; i < _io_cells->size(); i++)
+    {
+        //assert (_io_cells->at(i).io_id == i) ;
+        unassigned_io_cell->insert(i) ;
+    }
+
+    multimap<uint8_t, uint64_t> *ScanInLayer_to_WCid = new multimap<uint8_t, uint64_t> ;
+    multimap<uint8_t, uint64_t> *ScanOutLayer_to_WCid = new multimap<uint8_t, uint64_t> ;
+    vector<io_container*> *io_container_array = new vector<io_container*> ;
+
+    for (uint64_t i = 0 ; i < _wc_array->size(); i++) 
+    {
+        _wc_array->at(i)->Initialize_TSV_Count() ;
+        ScanInLayer_to_WCid->insert({_wc_array->at(i)->Get_ScanInLayer(), _wc_array->at(i)->Get_id()}) ;
+        ScanOutLayer_to_WCid->insert({_wc_array->at(i)->Get_ScanOutLayer(), _wc_array->at(i)->Get_id()}) ;
+
+        io_container_array->push_back(new io_container()) ;
+
+        //assert (_wc_array->at(i)->Get_id() == i) ;
+    }
+    uint64_t incresed_tsv = 0 ;
+    while (unassigned_io_cell->size() > 0)
+    {
+        for (auto un_it = unassigned_io_cell->begin(); un_it != unassigned_io_cell->end(); un_it++)
+        {
+            if (_io_cells->at(*un_it).type == wrapper_element_type::IN_CELL) {
+                auto it = Get_best_WC_iterator(ScanInLayer_to_WCid, _io_cells->at(*un_it).layer) ;
+                if (it->first >= _io_cells->at(*un_it).layer) {
+                    io_container_array->at(it->second)->Insert_in((it->first - _io_cells->at(*un_it).layer), it->first, *un_it) ;
+                } else {
+                    io_container_array->at(it->second)->Insert_in((_io_cells->at(*un_it).layer - it->first), it->first, *un_it) ;
+                }
+            }
+
+        }
+        for (auto un_it = unassigned_io_cell->begin(); un_it != unassigned_io_cell->end(); un_it++)
+        {
+            if (_io_cells->at(*un_it).type == wrapper_element_type::OUT_CELL) {
+                auto it = Get_best_WC_iterator(ScanOutLayer_to_WCid, _io_cells->at(*un_it).layer) ;
+                if (it->first >= _io_cells->at(*un_it).layer) {
+                    io_container_array->at(it->second)->Insert_out((it->first - _io_cells->at(*un_it).layer), it->first, *un_it) ;
+                } else {
+                    io_container_array->at(it->second)->Insert_out((_io_cells->at(*un_it).layer - it->first), it->first, *un_it) ;
+                }
+            }
+
+        }
+
+        for (uint64_t i = 0 ; i < _wc_array->size(); i++){
+
+            if (io_container_array->at(i)->Is_in_Set()) {
+                auto io_id = io_container_array->at(i)->Get_in_ID() ;
+                incresed_tsv += io_container_array->at(i)->in_key_val ;
+                auto it = Get_WC_iterator(ScanInLayer_to_WCid, io_container_array->at(i)->wc_scan_in, i) ;
+                ScanInLayer_to_WCid->erase(it) ;
+                ScanInLayer_to_WCid->insert({_io_cells->at(io_id).layer, i}) ;
+                unassigned_io_cell->erase(io_id) ;
+
+            } else if (io_container_array->at(i)->Is_out_Set()) {
+                auto io_id = io_container_array->at(i)->Get_out_ID() ;
+                incresed_tsv += io_container_array->at(i)->out_key_val ;
+                auto it = Get_WC_iterator(ScanOutLayer_to_WCid, io_container_array->at(i)->wc_scan_out, i) ;
+                ScanOutLayer_to_WCid->erase(it) ;
+                ScanOutLayer_to_WCid->insert({_io_cells->at(io_id).layer, i}) ;
+                unassigned_io_cell->erase(io_id) ;
+
+            }
+
+            io_container_array->at(i)->Clear() ;
+        }
+    }
+
+    uint64_t total_tsv = incresed_tsv ;
+
+    for (auto it = ScanInLayer_to_WCid->begin(); it != ScanInLayer_to_WCid->end(); it++)
+    {
+        total_tsv += it->first ;
+    }
+
+    for (auto it = ScanOutLayer_to_WCid->begin(); it != ScanOutLayer_to_WCid->end(); it++)
+    {
+        total_tsv += it->first ;
+    }
+
+    for (uint64_t i = 0; i < _wc_array->size(); i++)
+    {
+        total_tsv += _wc_array->at(i)->Get_tsv() ;
+    }
+
+    delete ScanInLayer_to_WCid ;
+    delete ScanOutLayer_to_WCid ;
+    for (uint64_t i = 0 ; i < io_container_array->size(); i++)
+    {
+        delete io_container_array->at(i) ;
+    }
+    delete io_container_array ;
+    delete unassigned_io_cell ;
+
+    return total_tsv ;
 }

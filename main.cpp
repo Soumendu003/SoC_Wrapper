@@ -15,7 +15,7 @@ int main()
     
     Optimizer_Comparator *op_comp = new Optimizer_Comparator() ;
 
-    op_comp->Init_Comparator("Compare1_Soc.csv") ;
+    op_comp->Init_Comparator("Compare_Soc.csv") ;
 
     op_comp->Compare("Benchmarks/d281.soc") ;
     op_comp->Compare("Benchmarks/a586710.soc") ;

@@ -22,11 +22,11 @@ class Wrapper_Chain
 
         ~Wrapper_Chain()
         {
-            cout<<"Wrapper chain destrutor called"<<endl;
+            //cout<<"Wrapper chain destrutor called"<<endl;
             delete _id_to_sc ;
             delete _tt_to_id ;
             delete _inLayer_to_id ;
-            cout<<"Wrapper chain destrutor finished"<<endl;
+            //cout<<"Wrapper chain destrutor finished"<<endl;
         }
 
         void Insert_SC (const scanchain_t ele) ;
@@ -40,6 +40,10 @@ class Wrapper_Chain
         uint64_t Get_TSV_insertion(const scanchain_t ele) ;
         uint64_t Get_TSV_deletion(const scanchain_t ele) ;
         void PrintScanchains() ;
+
+    public:
+        uint8_t Get_ScanInLayer() { return _scan_in_layer ; }
+        uint8_t Get_ScanOutLayer() { return _scan_out_layer ; }
     private:
         uint64_t Calculate_TSV(multimap<uint8_t, uint64_t>& tem_inLayer_to_id) ;
         uint64_t Get_Nearest_InLayer(multimap<uint8_t, uint64_t> &inLayer_map, uint8_t key) ;
@@ -51,6 +55,8 @@ class Wrapper_Chain
         multimap<uint8_t, uint64_t> *_inLayer_to_id ;
         uint64_t _test_time ;
         uint64_t _tsv_count ;
+        uint8_t _scan_in_layer ;
+        uint8_t _scan_out_layer ;
 };
 
 #endif

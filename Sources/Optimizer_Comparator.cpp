@@ -12,10 +12,11 @@ void Optimizer_Comparator::Compare(char* file_name)
     uint8_t max_layer = 6 ;
 
     _curr_scanchain = _soc_lexer->Get_RandLayer_scanchains(max_layer) ;
+    _curr_io_cells = _soc_lexer->Get_RandLayer_iocells(max_layer) ;
 
     delete _wrapper_optimizer ;
 
-    _wrapper_optimizer = new Wrapper_Optimizer(_curr_scanchain) ;
+    _wrapper_optimizer = new Wrapper_Optimizer(_curr_scanchain, _curr_io_cells) ;
 
     cout<<"\n\n\n------------------------------------------------------------------------------"<<endl ;
     cout<<"------------------------------------------------------------------------------"<<endl ;
@@ -50,7 +51,7 @@ void Optimizer_Comparator::Compare(char* file_name)
         cout<<"Initial Partition Max TT = "<<to_string(best_result->init_max_tt)<<endl;
         cout<<"Initial Partition TSV count= "<<to_string(best_result->init_tsv)<<"\n\n"<<endl ;
 
-        cout<<"Simulated Annelation time taken = "<<best_result->simulated_annelation_time<<" ms."<<endl;
+        cout<<"Simulated Annelation time taken = "<<best_result->main_time<<" ms."<<endl;
         cout<<"Simulated Annelation Max TT = "<<to_string(best_result->final_max_tt)<<endl ;
         cout<<"Simulated Annelation TSV count = "<<to_string(best_result->final_tsv)<<endl ;
 
@@ -59,7 +60,7 @@ void Optimizer_Comparator::Compare(char* file_name)
         cout<<"---------------------- Wu et al RESULT--------------------------------------------------"<<endl ;
         cout<<"------------------------------------------------------------------------------\n"<<endl ;
 
-        WU_Optimizer *wu_opt = new WU_Optimizer(_curr_scanchain, wc_count) ;
+        WU_Optimizer *wu_opt = new WU_Optimizer(_curr_scanchain, _curr_io_cells, wc_count) ;
         auto start = chrono::high_resolution_clock::now();
         solution_t *wu_sol = wu_opt->Init_Optimizer() ;
         auto stop = chrono::high_resolution_clock::now();
@@ -96,7 +97,7 @@ void Optimizer_Comparator::Write_CSV_result(two_phase_result_t * two_phase_resul
         *_csv << to_string(two_phase_result->init_tsv) ;
 
         // Writes SA time
-        *_csv << two_phase_result->simulated_annelation_time ;
+        *_csv << two_phase_result->main_time ;
 
         // Writes SA Test Time
         *_csv << to_string(two_phase_result->final_max_tt) ;

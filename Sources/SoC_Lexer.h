@@ -20,6 +20,19 @@ typedef struct {
     uint64_t wrapper_chain ;        // denotes the the wrapper chain that includes it
 } scanchain_t ;
 
+typedef enum {
+    IN_CELL ,
+    OUT_CELL ,
+    SCAN_CHAIN 
+} wrapper_element_type ;
+
+typedef struct {
+    uint64_t io_id ;
+    wrapper_element_type type ;
+    uint8_t layer ;
+    uint64_t wrapper_chain ;
+} io_cell_t ;
+
 class SoC_Lexer 
 {
     
@@ -30,30 +43,37 @@ class SoC_Lexer
         {
             _tok = new ut_Tokenizer(file, _delimeters.c_str(), _special_Char_Set.c_str()) ;
             _scanchains = 0 ;
+            _sc_tt = (uint64_t)0 ;
+            _avail_sc = (uint64_t)0 ;
         }
 
         ~SoC_Lexer()
         {
             delete _scanchains ;
+            delete _io_cells ;
             delete _tok ;
             cout <<"Tokenizer Killed" ;
         }
 
         void Init_SoC_Lexer() ;
         vector<scanchain_t>* Get_RandLayer_scanchains(uint8_t max_layer = 2) ;
+        vector<io_cell_t>* Get_RandLayer_iocells(uint8_t max_layer = 2) ;
 
     private:
-        vector<scanchain_t>* Get_SoC_scanchains() ;
-        uint8_t Get_scanchain() ;
+        void Get_SoC_Wrapper_Elements() ;
+        void Get_scanchains() ;
+        void Get_input_cell() ;
+        void Get_output_cell() ;
 
         
     private:
         ut_Tokenizer* _tok ;
         vector<scanchain_t>* _scanchains ;
+        vector<io_cell_t>* _io_cells ;
         string  _delimeters = "\n\t\r";
         string _special_Char_Set = ":";
-        uint64_t _sc_tt = (uint64_t)0 ;        // holds the tets time of the parsed scanchain
-        uint64_t _avail_sc = (uint64_t)0 ;     // no of available scan chains in the buffer
+        uint64_t _sc_tt ;        // holds the tets time of the parsed scanchain
+        uint64_t _avail_sc ;     // no of available scan chains in the buffer
 
 };
 
