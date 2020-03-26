@@ -1,7 +1,7 @@
 SRC = $(shell pwd)
 #_parentDIR := $(SRC)/..
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -g -lpthread
+CXXFLAGS = -std=c++11 -Wall -g -lpthread -ggdb3
 LINKDIR = Library Sources
 
 #LIB_TYPE = {static,shared}
