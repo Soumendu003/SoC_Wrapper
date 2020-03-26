@@ -81,7 +81,9 @@ solution_t* WU_Optimizer::Scan_Chains_Assignment(WU_Group *parent_group)
 {
     if (parent_group->Get_WC_Size() <= 1){
         solution_t *ret_sol = new solution_t ;
-        ret_sol->Copy(TAD(parent_group));
+        solution_t *new_val = TAD(parent_group) ;
+        ret_sol->Copy(new_val);
+        delete new_val ;
         return ret_sol ;
     }
 
@@ -172,8 +174,8 @@ solution_t* WU_Optimizer::Scan_Chains_Assignment(WU_Group *parent_group)
 
         solution_t *tem_solution = Merge_Solution(sol_grp1, sol_grp2) ;
 
-        //delete sol_grp1 ;
-        //delete sol_grp2 ;
+        delete sol_grp1 ;
+        delete sol_grp2 ;
 
         curr_solution->Copy(tem_solution) ;
 
@@ -181,6 +183,7 @@ solution_t* WU_Optimizer::Scan_Chains_Assignment(WU_Group *parent_group)
 
     }while (!curr_solution->Equals(last_solution)) ;
     
+    delete Unlocked_Set ;
     delete last_solution ;
     return curr_solution ;
 }
@@ -370,6 +373,10 @@ solution_t* WU_Optimizer::TAD(WU_Group *group)
         group->Set_TAD_result(ret_val->max_tt, ret_val->tsv_count) ;
 
         delete Scanchains ;
+        for (uint64_t i = 0; i < WC_array->size(); i++)
+        {
+            delete WC_array->at(i) ;
+        }
         delete WC_array ;
 
         return ret_val ;
@@ -405,6 +412,7 @@ solution_t* WU_Optimizer::TAD(WU_Group *group)
     group->Set_TAD_result(ret_val->max_tt, ret_val->tsv_count) ;
 
     delete D1 ;
+    delete std_greater_chains ;
     for (uint64_t i = 0 ; i < WC_array->size(); i++)
     {
         delete WC_array->at(i) ;

@@ -14,9 +14,9 @@ void Optimizer_Comparator::Compare(char* file_name)
     _curr_scanchain = _soc_lexer->Get_RandLayer_scanchains(max_layer) ;
     _curr_io_cells = _soc_lexer->Get_RandLayer_iocells(max_layer) ;
 
-    delete _wrapper_optimizer ;
+    /*delete _wrapper_optimizer ;*/
 
-    _wrapper_optimizer = new Wrapper_Optimizer(_curr_scanchain, _curr_io_cells) ;
+    /*_wrapper_optimizer = new Wrapper_Optimizer(_curr_scanchain, _curr_io_cells) ;*/
 
     cout<<"\n\n\n------------------------------------------------------------------------------"<<endl ;
     cout<<"------------------------------------------------------------------------------"<<endl ;
@@ -27,33 +27,33 @@ void Optimizer_Comparator::Compare(char* file_name)
 
     for (uint64_t wc_count = 5; wc_count < 9; wc_count++)
     {
-        two_phase_result_t *best_result = 0;
-        for (auto i = 0; i < 100; i++)
-        {
-            two_phase_result_t *tem = _wrapper_optimizer->Two_Phase_Optimizer(max_layer, wc_count) ;
+        /*two_phase_result_t *best_result = 0;*/
+        //for (auto i = 0; i < 100; i++)
+        //{
+            //two_phase_result_t *tem = _wrapper_optimizer->Two_Phase_Optimizer(max_layer, wc_count) ;
             
-            if (best_result == 0){
-                best_result = new two_phase_result_t ;
-                Wrapper_Optimizer::copy_result(best_result, tem) ;
-            } else if (Wrapper_Optimizer::greater_than_result(best_result, tem)) {
-                Wrapper_Optimizer::copy_result(best_result, tem) ;
-            }
-        }
+            //if (best_result == 0){
+                //best_result = new two_phase_result_t ;
+                //Wrapper_Optimizer::copy_result(best_result, tem) ;
+            //} else if (Wrapper_Optimizer::greater_than_result(best_result, tem)) {
+                //Wrapper_Optimizer::copy_result(best_result, tem) ;
+            //}
+        //}
 
-        cout<<"\n------------------------------------------------------------------------------\n"<<endl ;
-        cout<<"\n Results with wrapper chain count = "<<to_string(wc_count)<<endl<<endl ;
+        //cout<<"\n------------------------------------------------------------------------------\n"<<endl ;
+        //cout<<"\n Results with wrapper chain count = "<<to_string(wc_count)<<endl<<endl ;
         
-        cout<<"\n\n------------------------------------------------------------------------------\n"<<endl ;
-        cout<<"---------------------- OUR RESULT--------------------------------------------------"<<endl ;
-        cout<<"------------------------------------------------------------------------------\n"<<endl ;
+        //cout<<"\n\n------------------------------------------------------------------------------\n"<<endl ;
+        //cout<<"---------------------- OUR RESULT--------------------------------------------------"<<endl ;
+        //cout<<"------------------------------------------------------------------------------\n"<<endl ;
 
-        cout<<"Initial Partition time-taken = "<<best_result->initial_partition_time<<" ms."<<endl;
-        cout<<"Initial Partition Max TT = "<<to_string(best_result->init_max_tt)<<endl;
-        cout<<"Initial Partition TSV count= "<<to_string(best_result->init_tsv)<<"\n\n"<<endl ;
+        //cout<<"Initial Partition time-taken = "<<best_result->initial_partition_time<<" ms."<<endl;
+        //cout<<"Initial Partition Max TT = "<<to_string(best_result->init_max_tt)<<endl;
+        //cout<<"Initial Partition TSV count= "<<to_string(best_result->init_tsv)<<"\n\n"<<endl ;
 
-        cout<<"Simulated Annelation time taken = "<<best_result->main_time<<" ms."<<endl;
-        cout<<"Simulated Annelation Max TT = "<<to_string(best_result->final_max_tt)<<endl ;
-        cout<<"Simulated Annelation TSV count = "<<to_string(best_result->final_tsv)<<endl ;
+        //cout<<"Simulated Annelation time taken = "<<best_result->main_time<<" ms."<<endl;
+        //cout<<"Simulated Annelation Max TT = "<<to_string(best_result->final_max_tt)<<endl ;
+        /*cout<<"Simulated Annelation TSV count = "<<to_string(best_result->final_tsv)<<endl ;*/
 
 
         cout<<"\n\n------------------------------------------------------------------------------\n"<<endl ;
@@ -70,7 +70,7 @@ void Optimizer_Comparator::Compare(char* file_name)
         std::cout<<"\nMax_TT = "<<std::to_string(wu_sol->max_tt)<<std::endl ;
         std::cout<<"\nTSV count = "<<std::to_string(wu_sol->tsv_count)<<std::endl ;
 
-        Write_CSV_result(best_result, wu_sol, to_string(duration.count()), file_name, wc_count) ;
+        //Write_CSV_result(best_result, wu_sol, to_string(duration.count()), file_name, wc_count) ;
 
         delete wu_sol ;
         delete wu_opt ;
