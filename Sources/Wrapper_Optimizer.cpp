@@ -426,11 +426,10 @@ void Wrapper_Optimizer::copy_result(two_phase_result_t *to_var, two_phase_result
 
 bool Wrapper_Optimizer::greater_than_result(two_phase_result_t *var1, two_phase_result_t *var2)
 {
-    if (var1->final_tsv > var2->final_tsv) {
-        return true ;
-    }
+    double tt_better = ((double)var1->final_max_tt - var2->final_max_tt) / (var1->init_max_tt) ;
+    double tsv_better = ((double)var1->final_tsv - var1->final_tsv) / (var1->init_tsv) ;
 
-    if (var1->final_max_tt > var2->final_max_tt) {
+    if (tt_better + tsv_better > 0) {
         return true ;
     }
 
