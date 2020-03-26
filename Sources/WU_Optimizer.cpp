@@ -174,8 +174,8 @@ solution_t* WU_Optimizer::Scan_Chains_Assignment(WU_Group *parent_group)
 
         solution_t *tem_solution = Merge_Solution(sol_grp1, sol_grp2) ;
 
-        delete sol_grp1 ;
-        delete sol_grp2 ;
+        //delete sol_grp1 ;
+        //delete sol_grp2 ;
 
         curr_solution->Copy(tem_solution) ;
 
